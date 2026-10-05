@@ -389,7 +389,11 @@ build_iso() {
     install_brand_assets "$ROOTFS" "${WORK}/brand"
     prepare_stage
     log "Installing packages inside the chroot. This is the long step."
-    chroot "$ROOTFS" /bin/bash /tmp/vital-build/configure-system.sh
+    # Drop the host sudo identity. Tools such as papirus-folders treat
+    # SUDO_USER as a user inside the rootfs and abort when that account
+    # does not exist there.
+    chroot "$ROOTFS" /usr/bin/env -u SUDO_USER -u SUDO_UID -u SUDO_GID -u PKEXEC_UID \
+        /bin/bash /tmp/vital-build/configure-system.sh
     umount_chroot "$ROOTFS"
     MOUNTED=0
 

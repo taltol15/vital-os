@@ -70,9 +70,11 @@ glib-compile-schemas /usr/share/glib-2.0/schemas
 
 if [[ -x "${STAGE}/papirus-folders" ]]; then
     install -m 0755 "${STAGE}/papirus-folders" /usr/local/sbin/papirus-folders
-    if /usr/local/sbin/papirus-folders -t Papirus-Dark -l | grep -q 'palebrown'; then
+    if env -u SUDO_USER -u SUDO_UID -u SUDO_GID -u PKEXEC_UID \
+        /usr/local/sbin/papirus-folders -t Papirus-Dark -l | grep -q 'palebrown'; then
         log "Tinting Papirus-Dark folders palebrown"
-        /usr/local/sbin/papirus-folders -t Papirus-Dark -C palebrown
+        env -u SUDO_USER -u SUDO_UID -u SUDO_GID -u PKEXEC_UID \
+            /usr/local/sbin/papirus-folders -t Papirus-Dark -C palebrown
     else
         log "palebrown folders were not in this Papirus build; leaving the default tint"
     fi
