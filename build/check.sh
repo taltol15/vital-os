@@ -108,6 +108,12 @@ fi
 if ! grep -q 'vital-assistant' marketplace/catalog/sources/vital-assistant.json; then
     bad "Marketplace catalog is missing vital-assistant"
 fi
+if ! grep -q 'apps/vital-assistant/build_deb.py' build.sh; then
+    bad "the ISO build must create the vital-assistant package; the deb is not stored in git"
+fi
+if ! grep -q 'vital-assistant.deb is missing' build/in-chroot/configure-system.sh; then
+    bad "configure-system.sh must refuse to finish when vital-assistant.deb is missing"
+fi
 
 while IFS= read -r pkg; do
     case "$pkg" in

@@ -105,7 +105,7 @@
         "method": "deb",
         "package": "vital-assistant",
         "url": "bundled://debs/vital-assistant_0.2.0_all.deb",
-        "sha256": "085262a7c3b7d850b5456741269cd02af9ed7a90bfc1786dfb49e6383337ed9d"
+        "sha256": "f672525fcfe81fb6bc998ea60a103e56813d3c99992a4fe3b730aa1647eddf4d"
       },
       "min_os_version": "0.2.0",
       "icon": {
@@ -113,7 +113,7 @@
         "sha256": "c52dc654fae4b2434f1a9324685f855424b9a69ff56b67f31e8cfb9abda13626"
       },
       "screenshots": [],
-      "checksum": "40a93d0da2060542f49c0a33aaa98950ee020f30e651292c8895c7d1cf5c4f32"
+      "checksum": "486efd119f441be97a0230e17e64286b84bc2cee03492f70db36348133128fa4"
     },
     {
       "id": "vital-example-note",

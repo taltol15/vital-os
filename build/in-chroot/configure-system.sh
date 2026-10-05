@@ -107,10 +107,12 @@ ln -sfn /dev/null /etc/systemd/system/whoopsie.path
 
 log "Restoring Vital OS files that package scripts may have replaced"
 cp -a "${STAGE}/overlay/." /
-if [[ -f "${STAGE}/vital-assistant.deb" ]]; then
-    log "Installing vital-assistant"
-    DEBIAN_FRONTEND=noninteractive apt-get install -y "${STAGE}/vital-assistant.deb"
+if [[ ! -f "${STAGE}/vital-assistant.deb" ]]; then
+    echo "vital-assistant.deb is missing; the image would ship without Vital Assistant." >&2
+    exit 1
 fi
+log "Installing vital-assistant"
+DEBIAN_FRONTEND=noninteractive apt-get install -y "${STAGE}/vital-assistant.deb"
 if [[ -f /etc/bash.bashrc ]] && ! grep -q 'vital-assistant.sh' /etc/bash.bashrc; then
     printf '\n# Vital Assistant shortcuts. The failure hint stays off until shell_hook=1.\n[ -f /etc/profile.d/vital-assistant.sh ] && . /etc/profile.d/vital-assistant.sh\n' >> /etc/bash.bashrc
 fi

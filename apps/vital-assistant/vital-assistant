@@ -20,6 +20,7 @@ for extra in (Path("/usr/lib/vitalos"), Path(__file__).resolve().parent):
 from vital_assistant import (  # noqa: E402
     AssistantError,
     Settings,
+    Suggestion,
     keystore_for,
     load_settings,
     save_user_settings,
@@ -46,7 +47,7 @@ def animations_on() -> bool:
 class AssistantWindow(Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application) -> None:
         super().__init__(application=app, title="Vital Assistant")
-        self.set_default_size(720, 560)
+        self.set_default_size(640, 520)
         self.settings = load_settings()
         self._busy = False
 
@@ -72,10 +73,25 @@ class AssistantWindow(Adw.ApplicationWindow):
         if view == "ask" or self._ready():
             self.stack.set_visible_child_name("ask")
             if view == "ask":
-                self.answer.set_text(
-                    "rmdir empty-folder\n\n"
-                    "rmdir removes an empty directory. It does not recurse."
-                )
+                demo = os.environ.get("VITAL_ASSISTANT_DEMO", "")
+                if demo == "danger":
+                    self.question.set_text("How do I wipe a disk?")
+                    self._show_suggestion(
+                        Suggestion(
+                            "sudo mkfs.ext4 /dev/sdb",
+                            "This formats a whole disk and destroys what is on it.",
+                            "mkfs",
+                        )
+                    )
+                else:
+                    self.question.set_text("How do I delete an empty folder?")
+                    self._show_suggestion(
+                        Suggestion(
+                            "rmdir empty-folder",
+                            "rmdir removes an empty directory. It does not recurse.",
+                            None,
+                        )
+                    )
             return
         self.stack.set_visible_child_name("connect")
 
@@ -120,23 +136,28 @@ class AssistantWindow(Adw.ApplicationWindow):
         return page
 
     def _ask_page(self) -> Gtk.Widget:
+        page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        clamp = Adw.Clamp(maximum_size=520, tightening_threshold=360)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        box.set_margin_top(18)
-        box.set_margin_bottom(18)
-        box.set_margin_start(24)
-        box.set_margin_end(24)
-        title = Gtk.Label(label="Ask about this system", xalign=0)
+        box.set_margin_top(16)
+        box.set_margin_bottom(20)
+        box.set_margin_start(16)
+        box.set_margin_end(16)
+        title = Gtk.Label(label="Ask about this system", xalign=0, wrap=True)
         title.add_css_class("title-1")
         hint = Gtk.Label(
-            label="You get a command and a short explanation. Nothing runs until you confirm in the terminal, or press Run here.",
+            label="Enter asks. Nothing runs until you press Run, and a dangerous command is refused here.",
             xalign=0,
             wrap=True,
+            hexpand=True,
+            max_width_chars=42,
         )
         hint.add_css_class("dim-label")
         self.question = Gtk.Entry()
         self.question.props.placeholder_text = "How do I delete an empty folder?"
         self.question.connect("activate", lambda *_a: self._ask())
-        row = Gtk.Box(spacing=12)
+        self.question.grab_focus()
+        row = Gtk.Box(spacing=8)
         ask = Gtk.Button(label="Ask")
         ask.add_css_class("suggested-action")
         ask.connect("clicked", lambda *_a: self._ask())
@@ -150,15 +171,68 @@ class AssistantWindow(Adw.ApplicationWindow):
         self.progress = Gtk.ProgressBar()
         self.progress.set_visible(False)
         self.progress.add_css_class("osd")
-        self.answer = Gtk.Label(label="", xalign=0, wrap=True, selectable=True)
-        self.answer.set_vexpand(True)
+
+        self.warning = Adw.Banner()
+        self.warning.set_revealed(False)
+        self.command_label = Gtk.Label(xalign=0, wrap=True, selectable=True, hexpand=True)
+        self.command_label.add_css_class("monospace")
+        self.command_label.add_css_class("title-4")
+        self.copy_button = Gtk.Button(icon_name="edit-copy-symbolic")
+        self.copy_button.set_tooltip_text("Copy command")
+        self.copy_button.set_valign(Gtk.Align.CENTER)
+        self.copy_button.connect("clicked", self._copy_command)
+        command_row = Gtk.Box(spacing=8)
+        command_row.append(self.command_label)
+        command_row.append(self.copy_button)
+        self.explanation = Gtk.Label(xalign=0, wrap=True, hexpand=True, max_width_chars=42)
+        self.explanation.add_css_class("dim-label")
+        self.status_line = Gtk.Label(xalign=0, wrap=True, hexpand=True, max_width_chars=42)
+        inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        inner.set_margin_top(14)
+        inner.set_margin_bottom(14)
+        inner.set_margin_start(16)
+        inner.set_margin_end(16)
+        inner.append(self.warning)
+        inner.append(command_row)
+        inner.append(self.explanation)
+        inner.append(self.status_line)
+        self.result_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.result_card.add_css_class("card")
+        self.result_card.append(inner)
+        self.result_card.set_visible(False)
+
         box.append(title)
         box.append(hint)
         box.append(self.question)
         box.append(row)
         box.append(self.progress)
-        box.append(self.answer)
-        return box
+        box.append(self.result_card)
+        clamp.set_child(box)
+        page.append(clamp)
+        return page
+
+    def _show_suggestion(self, suggestion: Suggestion) -> None:
+        self._suggestion = suggestion
+        self.result_card.set_visible(True)
+        self.command_label.set_text(suggestion.command or "No command.")
+        self.copy_button.set_visible(bool(suggestion.command))
+        self.explanation.set_text(suggestion.explanation)
+        self.status_line.set_text("")
+        if suggestion.dangerous:
+            self.warning.set_title(
+                f"This looks like {suggestion.risk}. It is not run from this window. "
+                "Use the terminal and type the command or yes."
+            )
+            self.warning.set_revealed(True)
+        else:
+            self.warning.set_revealed(False)
+
+    def _copy_command(self, _button: Gtk.Button) -> None:
+        command = self.command_label.get_text().strip()
+        if not command or command == "No command.":
+            return
+        self.get_clipboard().set(command)
+        self.status_line.set_text("Copied.")
 
     def _selected_provider(self) -> str:
         text = self.provider.get_selected_item().get_string() if self.provider.get_selected_item() else "Grok (xAI)"
@@ -206,16 +280,10 @@ class AssistantWindow(Adw.ApplicationWindow):
             try:
                 suggestion = suggest(question, self.settings, keystore_for(self.settings))
             except AssistantError as exc:
-                self.answer.set_text(str(exc))
+                self._show_suggestion(Suggestion("", str(exc), None))
                 self._suggestion = None
             else:
-                self._suggestion = suggestion
-                text = suggestion.command or "No command."
-                if suggestion.explanation:
-                    text += "\n\n" + suggestion.explanation
-                if suggestion.risk:
-                    text += f"\n\nWarning: this looks like {suggestion.risk}. Run asks you to confirm."
-                self.answer.set_text(text)
+                self._show_suggestion(suggestion)
             self._busy = False
             self.progress.set_visible(False)
             return False
@@ -231,14 +299,14 @@ class AssistantWindow(Adw.ApplicationWindow):
     def _run(self) -> None:
         suggestion = getattr(self, "_suggestion", None)
         if suggestion is None or not suggestion.command:
-            self.answer.set_text("Ask first. Nothing runs on its own.")
+            self.status_line.set_text("Ask first. Nothing runs on its own.")
             return
         if suggestion.dangerous:
-            self.answer.set_text(
-                self.answer.get_text()
-                + "\n\nThis command is dangerous. Run it from the terminal with vital ask, "
-                "and type the command or yes."
+            self.warning.set_title(
+                f"This looks like {suggestion.risk}. It is not run from this window. "
+                "Use the terminal and type the command or yes."
             )
+            self.warning.set_revealed(True)
             return
         dialog = Adw.AlertDialog(
             heading="Run this command?",
@@ -256,7 +324,7 @@ class AssistantWindow(Adw.ApplicationWindow):
             from vital_assistant import execute
 
             code = execute(suggestion.command)
-            self.answer.set_text(self.answer.get_text() + f"\n\nExited {code}.")
+            self.status_line.set_text(f"Exited {code}.")
 
         dialog.connect("response", respond)
         dialog.present(self)
