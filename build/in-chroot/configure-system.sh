@@ -6,6 +6,7 @@ set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 STAGE=/tmp/vital-build
 
@@ -120,7 +121,14 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
 fi
 
 log "Setting the Plymouth theme and rebuilding the initramfs"
-plymouth-set-default-theme vitalos
+# Ubuntu 24.04 selects the splash through the default.plymouth alternative.
+# plymouth-set-default-theme is not shipped in this plymouth package.
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth \
+    /usr/share/plymouth/themes/vitalos/vitalos.plymouth 200
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/vitalos/vitalos.plymouth
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+    plymouth-set-default-theme vitalos
+fi
 update-initramfs -u -k all
 
 log "Cleaning the rootfs"
