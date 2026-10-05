@@ -151,7 +151,10 @@ class MarketWindow(Adw.ApplicationWindow):
         main.set_margin_end(16)
         if self.source != "remote":
             banner = Adw.Banner()
-            banner.set_title("Showing the bundled catalog. A signed remote catalog is used when catalog_url is reachable.")
+            banner.set_title(
+                "Showing the unsigned sample catalog shipped with this image. "
+                "A signed catalog from vital-os.org is used when it can be reached."
+            )
             banner.set_revealed(True)
             main.append(banner)
         main.append(self.search)

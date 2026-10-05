@@ -175,10 +175,65 @@ def mark_complete() -> None:
     STAMP.write_text("completed\n", encoding="utf-8")
 
 
+def telemetry_conf_path() -> Path:
+    override = os.environ.get("VITAL_TELEMETRY_CONF", "")
+    if override:
+        return Path(override)
+    system = Path("/etc/vital/telemetry.conf")
+    if system.is_file():
+        return system
+    return Path(__file__).resolve().parents[2] / "overlay" / "etc" / "vital" / "telemetry.conf"
+
+
+def telemetry_enabled() -> bool:
+    path = telemetry_conf_path()
+    if not path.is_file():
+        return True
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line.startswith("enabled="):
+            return line.split("=", 1)[1].strip().lower() in {"1", "true", "yes", "on"}
+    return True
+
+
+def set_telemetry_enabled(on: bool) -> bool:
+    script = Path("/usr/bin/vital-telemetry-ctl")
+    local = Path(__file__).resolve().parents[1] / "vital-telemetry" / "vital-telemetry-ctl"
+    binary = script if script.is_file() else local
+    if not binary.is_file():
+        return False
+    completed = subprocess.run(
+        [str(binary), "on" if on else "off"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    return completed.returncode == 0
+
+
+def send_install_ping() -> None:
+    if os.environ.get("VITAL_WELCOME_PREVIEW") == "1" or os.environ.get("VITAL_WELCOME_SHOT"):
+        return
+    if not telemetry_enabled():
+        return
+    script = Path("/usr/bin/vital-telemetry")
+    local = Path(__file__).resolve().parents[1] / "vital-telemetry" / "vital-telemetry"
+    binary = script if script.is_file() else local
+    if not binary.is_file():
+        return
+    subprocess.Popen(
+        [str(binary), "install"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
 class WelcomeWindow(Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application) -> None:
         super().__init__(application=app, title="Vital OS")
-        self.set_default_size(880, 640)
+        self.set_default_size(920, 760 if os.environ.get("VITAL_WELCOME_SHOT") else 640)
         self._mode = "dark"
         self._accent = "champagne"
         self._closed = False
@@ -308,8 +363,11 @@ class WelcomeWindow(Adw.ApplicationWindow):
 
     def _on_close(self, _window: Gtk.Window) -> bool:
         if not self._closed:
+            saw_choice = self._page_index() >= len(PAGE_NAMES) - 1
             self._closed = True
             mark_complete()
+            if saw_choice:
+                send_install_ping()
         return False
 
     def _page_shell(self, title: str, subtitle: str) -> tuple[Gtk.ScrolledWindow, Gtk.Box]:
@@ -438,10 +496,23 @@ class WelcomeWindow(Adw.ApplicationWindow):
     def _page_privacy(self) -> Gtk.Widget:
         scroll, page = self._page_shell(
             "Privacy and updates",
-            "Vital OS does not add a telemetry client. Location and problem reporting "
-            "below are GNOME settings. Ubuntu's crash reporter service is masked. "
-            "Applications you install can still check for their own updates.",
+            "The first switch is the Vital OS install count. The other switches are GNOME "
+            "settings. Ubuntu's crash reporter service is masked. Applications you install "
+            "can still check for their own updates.",
         )
+        vital = Adw.PreferencesGroup(title="Vital OS")
+        telemetry = Adw.SwitchRow(
+            title="Anonymous install count",
+            subtitle=(
+                "On, Vital OS sends a random id, the OS version, and a weekly check-in "
+                "to vital-os.org. It does not send your name, username, email, or computer "
+                "details. Turn it off and nothing is sent."
+            ),
+        )
+        telemetry.set_active(telemetry_enabled())
+        telemetry.connect("notify::active", self._on_telemetry)
+        vital.add(telemetry)
+        page.append(vital)
         group = Adw.PreferencesGroup(title="This account")
         self._add_switch(
             group,
@@ -504,6 +575,18 @@ class WelcomeWindow(Adw.ApplicationWindow):
     def _on_switch(self, row: Adw.SwitchRow, _pspec: object, schema: str, key: str) -> None:
         set_bool(schema, key, row.get_active())
 
+    def _on_telemetry(self, row: Adw.SwitchRow, _pspec: object) -> None:
+        if getattr(self, "_telemetry_hold", False) or os.environ.get("VITAL_WELCOME_SHOT"):
+            return
+        if set_telemetry_enabled(row.get_active()):
+            return
+        self._telemetry_hold = True
+        row.set_active(not row.get_active())
+        self._telemetry_hold = False
+        row.set_subtitle(
+            "Could not save that choice. An administrator can run vital-telemetry-ctl on or off."
+        )
+
     def _on_page(self, _stack: Gtk.Stack, _pspec: object) -> None:
         self._sync_buttons()
 
@@ -529,6 +612,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
         last = len(PAGE_NAMES) - 1
         if index >= last:
             mark_complete()
+            send_install_ping()
             self._closed = True
             self.close()
             return

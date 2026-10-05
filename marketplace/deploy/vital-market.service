@@ -15,7 +15,9 @@ Environment=VITAL_MARKET_DATA=/var/lib/vital-market
 Environment=VITAL_MARKET_SIGNING_KEY_FILE=/etc/vital/market.key
 Environment=VITAL_MARKET_RATE_LIMIT=30
 Environment=VITAL_MARKET_RATE_WINDOW=60
-ExecStart=/usr/bin/uvicorn vital_market.app:app --host 127.0.0.1 --port 8080
+Environment=VITAL_PUBLIC_BASE=https://vital-os.org
+# Environment=VITAL_ISO_URL=https://vital-os.org/releases/VitalOS-0.1.0-amd64.iso
+ExecStart=/usr/bin/uvicorn vital_market.app:app --host 127.0.0.1 --port 8080 --no-access-log
 NoNewPrivileges=true
 PrivateTmp=true
 

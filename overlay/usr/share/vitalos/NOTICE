@@ -20,6 +20,9 @@ binaries in this repository except the Flathub remote description:
 - Calamares, GPL-3.0.
 - GNOME, Adwaita, and other desktop components, their respective licenses.
 
-Vital OS does not add a telemetry client. Ubuntu's Settings package
-depends on whoopsie-preferences; the whoopsie service is masked in this
-image. Applications you install later may have their own update checks.
+Vital OS can send an anonymous install count: a random id, the OS version,
+and a weekly check-in. It does not send a name, username, email, hostname,
+or hardware id. The switch is in Vital Welcome. See
+/usr/share/vitalos/PRIVACY.md. Ubuntu's Settings package depends on
+whoopsie-preferences; the whoopsie service is masked in this image.
+Applications you install later may have their own update checks.

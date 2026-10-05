@@ -49,6 +49,11 @@ required=(
     marketplace/catalog/catalog.json
     marketplace/server/vital_market/app.py
     overlay/etc/vital/marketplace.conf
+    overlay/etc/vital/telemetry.conf
+    apps/vital-telemetry/vital-telemetry
+    apps/vital-telemetry/vital-telemetry-ctl
+    apps/vital-telemetry/vital_telemetry.py
+    PRIVACY.md
     overlay/usr/share/applications/vital-marketplace.desktop
     overlay/etc/casper.conf
     overlay/etc/dconf/db/local.d/01-vital-desktop
@@ -96,6 +101,10 @@ python3 -m py_compile \
     marketplace/cli/vital-market \
     marketplace/tools/build_catalog.py \
     marketplace/server/vital_market/app.py \
+    marketplace/server/vital_market/mgmt.py \
+    apps/vital-telemetry/vital-telemetry \
+    apps/vital-telemetry/vital-telemetry-ctl \
+    apps/vital-telemetry/vital_telemetry.py \
     tools/render_previews.py
 
 note "checking catalog.json"

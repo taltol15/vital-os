@@ -11,4 +11,4 @@ ENV VITAL_MARKET_SCHEMA=/srv/schema/catalog-item.schema.json
 ENV VITAL_MARKET_DB=/data/market.db
 ENV VITAL_MARKET_DATA=/data
 EXPOSE 8080
-CMD ["uvicorn", "vital_market.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "vital_market.app:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]

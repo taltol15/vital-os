@@ -1,0 +1,13 @@
+[Unit]
+Description=Weekly Vital OS anonymous check-in
+ConditionKernelCommandLine=!boot=casper
+
+[Timer]
+OnBootSec=20min
+OnUnitActiveSec=7d
+AccuracySec=1h
+Persistent=true
+Unit=vital-telemetry-heartbeat.service
+
+[Install]
+WantedBy=timers.target

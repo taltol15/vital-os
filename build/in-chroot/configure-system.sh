@@ -107,6 +107,13 @@ ln -sfn /dev/null /etc/systemd/system/whoopsie.path
 
 log "Restoring Vital OS files that package scripts may have replaced"
 cp -a "${STAGE}/overlay/." /
+mkdir -p /etc/systemd/system/timers.target.wants
+ln -sfn /etc/systemd/system/vital-telemetry.timer \
+    /etc/systemd/system/timers.target.wants/vital-telemetry.timer
+ln -sfn /etc/systemd/system/vital-telemetry-heartbeat.timer \
+    /etc/systemd/system/timers.target.wants/vital-telemetry-heartbeat.timer
+mkdir -p /var/lib/vitalos/telemetry
+chmod 0700 /var/lib/vitalos/telemetry
 install -d -m 0755 /etc/flatpak/remotes.d
 install -m 0644 "${STAGE}/flathub.flatpakrepo" /etc/flatpak/remotes.d/flathub.flatpakrepo
 

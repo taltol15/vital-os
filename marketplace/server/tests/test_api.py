@@ -136,6 +136,155 @@ def test_artifact_round_trip(tmp_path: Path) -> None:
     assert fetched.content == b"example-bytes"
 
 
+def test_canonical_api_prefix(tmp_path: Path) -> None:
+    client, key_path = make_client(tmp_path)
+    token = _insert_token(tmp_path, key_path)
+    created = client.post(
+        "/api/v1/admin/items",
+        json=sample_item(),
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert created.status_code == 200
+    listed = client.get("/api/v1/catalog")
+    assert listed.status_code == 200
+    assert json.loads(listed.content)["items"][0]["id"] == "celluloid"
+    public = client.get("/api/v1/public-key")
+    assert public.status_code == 200
+
+
+def test_mgmt_session_csrf_and_bearer_separation(tmp_path: Path) -> None:
+    client, key_path = make_client(tmp_path)
+    token = _insert_token(tmp_path, key_path)
+    assert client.post("/mgmt/items", data={"id": "x"}).status_code == 401
+    assert client.post("/mgmt/publish", data={"csrf": "nope"}).status_code == 401
+    assert client.post("/api/v1/admin/items", json=sample_item()).status_code == 401
+    signed_in = client.post("/mgmt/login", data={"token": token}, follow_redirects=False)
+    assert signed_in.status_code == 303
+    cookie = signed_in.headers["set-cookie"]
+    assert "vital_mgmt=" in cookie
+    assert "HttpOnly" in cookie
+    assert "Path=/mgmt" in cookie
+    assert "samesite=strict" in cookie.lower()
+    missing = client.post("/mgmt/publish", data={})
+    assert missing.status_code == 403
+    home = client.get("/mgmt")
+    assert home.status_code == 200
+    assert "Downloads" in home.text
+    assert "Installs" in home.text
+    assert "Live" in home.text
+    csrf = _csrf(home.text)
+    published = client.post("/mgmt/publish", data={"csrf": csrf})
+    assert published.status_code == 200
+    leaked = client.post("/api/v1/admin/items", json=sample_item())
+    assert leaked.status_code == 401
+
+
+def test_mgmt_can_create_item(tmp_path: Path) -> None:
+    client, key_path = make_client(tmp_path)
+    token = _insert_token(tmp_path, key_path)
+    client.post("/mgmt/login", data={"token": token})
+    form_page = client.get("/mgmt/items/new")
+    csrf = _csrf(form_page.text)
+    saved = client.post(
+        "/mgmt/items",
+        data={
+            "csrf": csrf,
+            "id": "celluloid",
+            "name": "Celluloid",
+            "summary": "A small GTK video player.",
+            "description": "Plays local media.",
+            "version": "system",
+            "category": "Media",
+            "publisher": "Celluloid contributors",
+            "homepage": "https://celluloid-player.github.io/",
+            "license": "GPL-3.0-or-later",
+            "min_os_version": "0.1.0",
+            "method": "apt",
+            "package": "celluloid",
+            "icon_url": "bundled://icons/media.svg",
+            "icon_sha256": "a" * 64,
+        },
+        follow_redirects=False,
+    )
+    assert saved.status_code == 303
+    catalog = json.loads(client.get("/api/v1/catalog").content)
+    assert catalog["items"][0]["install"]["package"] == "celluloid"
+    assert "signature" in catalog
+
+
+def test_telemetry_is_anonymous_and_limited(tmp_path: Path) -> None:
+    import sqlite3
+
+    client, _key = make_client(tmp_path)
+    install_id = "11111111-1111-4111-8111-111111111111"
+    payload = {
+        "install_id": install_id,
+        "os_version": "0.1.0",
+        "event": "install",
+        "ts": "2026-10-05T00:00:00Z",
+    }
+    first = client.post("/api/v1/telemetry", json=payload)
+    assert first.status_code == 204
+    assert "set-cookie" not in {name.lower() for name in first.headers}
+    extra = dict(payload, hostname="vital")
+    assert client.post("/api/v1/telemetry", json=extra).status_code == 422
+    assert client.post("/api/v1/telemetry", json={**payload, "install_id": "not-a-uuid"}).status_code == 422
+    heartbeat = dict(payload, event="heartbeat", ts="2026-10-05T01:00:00Z")
+    assert client.post("/api/v1/telemetry", json=heartbeat).status_code == 204
+    connection = sqlite3.connect(tmp_path / "market.db")
+    columns = {
+        row[1]
+        for row in connection.execute("PRAGMA table_info(installs)").fetchall()
+    }
+    assert "ip" not in columns
+    assert "hostname" not in columns
+    assert "ts" not in columns
+    names = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    assert "requests" not in names
+    row = connection.execute(
+        "SELECT saw_install, os_version, last_heartbeat FROM installs"
+    ).fetchone()
+    assert row == (1, "0.1.0", row[2])
+    assert row[2] is not None
+    home_token = _insert_token(tmp_path, tmp_path / "market.key")
+    client.post("/mgmt/login", data={"token": home_token})
+    page = client.get("/mgmt")
+    assert ">1<" in page.text or "1" in page.text
+    assert "Downloads" in page.text
+
+
+def test_download_counter_sets_no_cookie(tmp_path: Path) -> None:
+    from vital_market.app import Settings, create_app
+
+    key = tmp_path / "market.key"
+    key.write_bytes(b"")
+    settings = Settings(
+        db_path=tmp_path / "market.db",
+        data_dir=tmp_path / "data",
+        signing_key_file=key,
+        iso_url="https://vital-os.org/releases/VitalOS-0.1.0-amd64.iso",
+    )
+    client = TestClient(create_app(settings))
+    counted = client.get("/api/v1/downloads/iso", follow_redirects=False)
+    assert counted.status_code == 302
+    assert counted.headers["location"].endswith("VitalOS-0.1.0-amd64.iso")
+    assert "set-cookie" not in {name.lower() for name in counted.headers}
+    assert counted.headers["cache-control"] == "no-store"
+    client.get("/downloads/iso", follow_redirects=False)
+    import sqlite3
+
+    value = sqlite3.connect(tmp_path / "market.db").execute(
+        "SELECT value FROM counters WHERE name = 'downloads'"
+    ).fetchone()[0]
+    assert value == 2
+
+
+def _csrf(page: str) -> str:
+    marker = 'name="csrf" value="'
+    start = page.index(marker) + len(marker)
+    return page[start : page.index('"', start)]
+
+
 def _insert_token(tmp_path: Path, key_path: Path) -> str:
     import hashlib
     import sqlite3

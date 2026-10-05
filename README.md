@@ -16,7 +16,9 @@ The codename for this look is **Nocturne**. Color, type, and the mark are docume
 - Firefox from Mozilla's apt archive (not the Ubuntu transitional snap), Files, Console, Text Editor, Loupe, Evince, Celluloid, LibreOffice Writer and Calc, GNOME Software, and Flatpak with Flathub configured.
 - The package set is [config/packages.desktop.list](config/packages.desktop.list). Live-only packages are [config/packages.live.list](config/packages.live.list) and Calamares removes them on install.
 
-Ubuntu's `gnome-shell` package depends on the name `ubuntu-wallpapers`. The build installs an empty package of that name so Canonical's wallpaper files are not unpacked. `whoopsie` can still be pulled in by Settings; its service is masked. Vital OS does not add a telemetry client of its own.
+Ubuntu's `gnome-shell` package depends on the name `ubuntu-wallpapers`. The build installs an empty package of that name so Canonical's wallpaper files are not unpacked. `whoopsie` can still be pulled in by Settings; its service is masked and crash reports stay off.
+
+Vital OS can send an anonymous install count to `https://vital-os.org/api/v1/telemetry`: a random id, the OS version, and either `install` or a weekly `heartbeat`. It does not send a name, username, email, hostname, or hardware id. The switch is in Vital Welcome and is on until you turn it off. Details are in [PRIVACY.md](PRIVACY.md). The catalog host is `vital-os.org`; the API prefix is `/api/v1`, and the admin UI is `https://vital-os.org/mgmt`. See [marketplace/README.md](marketplace/README.md).
 
 ## Build an ISO locally
 
@@ -148,6 +150,12 @@ Vital Marketplace, exported from the GTK4 app against the bundled catalog:
 
 ![Marketplace detail](docs/screenshots/marketplace-detail.png)
 
+The catalog admin UI at `/mgmt`, from a local server session. The counts are from that session, not a public deployment:
+
+![Management](docs/screenshots/mgmt.png)
+
+![New catalog item](docs/screenshots/mgmt-item.png)
+
 Day wallpaper:
 
 ![Day wallpaper](docs/screenshots/wallpaper-day.png)
@@ -177,7 +185,7 @@ On an Ubuntu 24.04 host:
 - A direct kernel boot of that ISO, with the same `boot=casper quiet` arguments as the GRUB entry, passed the overlay mount, started GNOME Display Manager, and started the live user session (`user@1000`). The framebuffer stayed on the Plymouth splash (`docs/screenshots/qemu-plymouth.png`) for the few minutes TCG was left running, so there is no photograph of the GNOME desktop from the guest. tty2 showed `Vital OS 0.1.0 vitalos` and a login prompt (`docs/screenshots/qemu-console.png`).
 - Calamares was not clicked through an install. Plymouth logged a missing `label-pango.so` plugin; the logo is a pixmap and still appeared. The ISO tree now also contains `/EFI/BOOT/BOOTX64.EFI` in addition to the appended FAT image. Secure Boot was not tested and is not supported.
 - Welcome no longer uses a carousel. GTK exports of the four pages show one page at a time, and the product line is `Vital OS 0.1.0` with `based on Ubuntu 24.04 LTS` underneath, including when `/etc/os-release` on the machine running the app is Ubuntu.
-- Marketplace unit tests cover authentication (401 without a token), schema rejection (422), ed25519 catalog signatures, ETag 304 responses, and the admin rate limit. The example script helper refuses to run without confirmation and accepts a dry run when the SHA-256 matches.
+- Marketplace unit tests cover authentication (401 without a token), schema rejection (422), ed25519 catalog signatures, ETag 304 responses, and the admin rate limit. They also cover the `/mgmt` cookie session (CSRF required, bearer still required on `/api`), telemetry field rejection, and the cookieless ISO download counter. The example script helper refuses to run without confirmation and accepts a dry run when the SHA-256 matches.
 - `sudo ./build.sh iso` was run again after these changes. It finished, and `build/output/VitalOS-0.1.0-amd64.iso` now contains `PRETTY_NAME="Vital OS 0.1.0"`, `vital-marketplace`, the bundled catalog, and `/EFI/BOOT/BOOTX64.EFI`. The image is gitignored.
 - That rebuilt ISO was booted in QEMU with TCG, `noplymouth`, and `-vga virtio`. It reached GDM. `docs/screenshots/qemu-gdm-live.png` is that guest greeter. Automatic login started `user@1000` on an earlier boot of the previous ISO and the framebuffer then stayed on a black spinner, so there is still no photograph of the GNOME desktop. KVM was not usable. Calamares was not clicked through an install.
 

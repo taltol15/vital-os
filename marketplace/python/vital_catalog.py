@@ -274,7 +274,7 @@ def fetch_remote_catalog(url: str, public_b64: str, timeout: float = 20) -> tupl
 def load_client_catalog(config: dict[str, str]) -> tuple[dict, str]:
     """Return (catalog, source). source is 'remote' or 'bundled'."""
     bundled_path = Path(config.get("bundled_catalog") or "/usr/share/vitalos/marketplace/catalog.json")
-    public_path = Path(config.get("public_key") or "/usr/share/vitalos/marketplace/catalog.pub")
+    public_path = Path(config.get("public_key") or "/etc/vital/marketplace.pub")
     url = config.get("catalog_url", "").strip()
     public = ""
     if public_path.is_file():

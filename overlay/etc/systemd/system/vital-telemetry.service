@@ -1,0 +1,12 @@
+[Unit]
+Description=Vital OS anonymous install ping
+After=network-online.target
+Wants=network-online.target
+ConditionKernelCommandLine=!boot=casper
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vital-telemetry install
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true

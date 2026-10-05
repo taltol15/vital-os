@@ -222,7 +222,13 @@ install_brand_assets() {
     install -m 0755 "${VITAL_ROOT_DIR}/marketplace/cli/vital-market" "${root}/usr/bin/vital-market"
     install -m 0644 "${VITAL_ROOT_DIR}/marketplace/python/vital_catalog.py" "${root}/usr/lib/vitalos/vital_catalog.py"
     cp -a "${VITAL_ROOT_DIR}/marketplace/catalog/." "${root}/usr/share/vitalos/marketplace/"
+    install -d "${root}/etc/vital"
+    install -m 0644 "${VITAL_ROOT_DIR}/marketplace/keys/catalog.pub" "${root}/etc/vital/marketplace.pub"
     install -m 0644 "${VITAL_ROOT_DIR}/marketplace/keys/catalog.pub" "${root}/usr/share/vitalos/marketplace/catalog.pub"
+    install -m 0755 "${VITAL_ROOT_DIR}/apps/vital-telemetry/vital-telemetry" "${root}/usr/bin/vital-telemetry"
+    install -m 0755 "${VITAL_ROOT_DIR}/apps/vital-telemetry/vital-telemetry-ctl" "${root}/usr/bin/vital-telemetry-ctl"
+    install -m 0644 "${VITAL_ROOT_DIR}/apps/vital-telemetry/vital_telemetry.py" "${root}/usr/lib/vitalos/vital_telemetry.py"
+    install -m 0644 "${VITAL_ROOT_DIR}/PRIVACY.md" "${root}/usr/share/vitalos/PRIVACY.md"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/logo/vital-market.svg" \
         "${root}/usr/share/icons/hicolor/scalable/apps/vitalos-market.svg"
     if [[ -f "${brand}/market-256.png" ]]; then
