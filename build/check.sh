@@ -81,6 +81,12 @@ fi
 if ! grep -q 'shellprocess@vital-target' config/calamares/settings.conf; then
     bad "settings.conf must run the target-disk check before unpackfs"
 fi
+if ! grep -q 'Package: grub-efi-amd64-signed' config/apt-preferences; then
+    bad "apt pin must keep Ubuntu's signed GRUB out of the image"
+fi
+if grep -q '^eject$' config/packages.live.list config/calamares/modules/packages.conf; then
+    bad "eject must stay installed; nautilus depends on it"
+fi
 if ! grep -q '^0.1.1$' VERSION; then
     bad "VERSION is not 0.1.1"
 fi

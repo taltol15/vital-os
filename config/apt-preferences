@@ -46,3 +46,14 @@ Pin-Priority: -1
 Package: apport-gtk
 Pin: release *
 Pin-Priority: -1
+
+# Ubuntu's signed GRUB is built to find Ubuntu's layout and the live image
+# (/.disk/info). grub-install copies that binary onto the EFI fallback path,
+# so an installed disk drops to a GRUB prompt. Secure Boot is not supported.
+Package: grub-efi-amd64-signed
+Pin: release *
+Pin-Priority: -1
+
+Package: shim-signed
+Pin: release *
+Pin-Priority: -1
