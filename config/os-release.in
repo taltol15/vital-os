@@ -1,0 +1,12 @@
+NAME="Vital OS"
+VERSION="@VERSION@"
+ID=vitalos
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="Vital OS @VERSION@"
+VERSION_ID="@VERSION@"
+VERSION_CODENAME=noble
+UBUNTU_CODENAME=noble
+HOME_URL="https://github.com/taltol15/vital-os"
+SUPPORT_URL="https://github.com/taltol15/vital-os/issues"
+BUG_REPORT_URL="https://github.com/taltol15/vital-os/issues"
+LOGO=vitalos

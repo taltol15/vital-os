@@ -1,0 +1,32 @@
+---
+componentName: vitalos
+
+windowExpanding: fullscreen
+windowSize: 800px,560px
+
+strings:
+    productName:         Vital OS
+    shortProductName:    Vital
+    version:             0.1.0
+    shortVersion:        0.1.0
+    versionedName:       Vital OS 0.1.0
+    shortVersionedName:  Vital OS 0.1.0
+    bootloaderEntryName: Vital OS
+    productUrl:          https://github.com/taltol15/vital-os
+    supportUrl:          https://github.com/taltol15/vital-os/issues
+    knownIssuesUrl:      https://github.com/taltol15/vital-os/issues
+    releaseNotesUrl:     https://github.com/taltol15/vital-os/releases
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "icon.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "show.qml"
+slideshowAPI:            1
+
+style:
+   SidebarBackground:    "#0E1116"
+   SidebarText:          "#C9C2B4"
+   SidebarTextCurrent:   "#C6A56A"
+   SidebarBackgroundCurrent: "#161A21"

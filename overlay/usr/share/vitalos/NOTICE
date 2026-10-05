@@ -1,0 +1,25 @@
+Vital OS 0.1.0
+================
+
+Original Vital OS branding (mark, wordmark, wallpapers, Plymouth theme,
+GRUB theme, GNOME Shell stylesheet, and Vital Welcome) is released under
+the GNU General Public License, version 3 or later.
+
+Third-party components installed by the image build, not vendored as
+binaries in this repository except the Flathub remote description:
+
+- Ubuntu 24.04 LTS packages, various licenses. Ubuntu is a trademark of
+  Canonical Ltd. Vital OS is not a Canonical product.
+- Inter and IBM Plex, SIL Open Font License, via fonts-inter and
+  fonts-ibm-plex.
+- Papirus icon theme, GPL-3.0, via papirus-icon-theme.
+- papirus-folders 1.14.0, MIT, used only at build time to tint folders.
+- Dash to Dock 100, GPL-2.0, installed from the upstream release archive.
+- Desktop Icons NG, GPL-3.0, via gnome-shell-extension-desktop-icons-ng.
+- Firefox, Mozilla Public License, from packages.mozilla.org.
+- Calamares, GPL-3.0.
+- GNOME, Adwaita, and other desktop components, their respective licenses.
+
+Vital OS does not add a telemetry client. Ubuntu's Settings package
+depends on whoopsie-preferences; the whoopsie service is masked in this
+image. Applications you install later may have their own update checks.

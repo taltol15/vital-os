@@ -1,0 +1,20 @@
+# Source notes for the greeter. The compiled database is
+# /etc/dconf/db/gdm.d, applied with the gdm dconf profile.
+[org/gnome/desktop/interface]
+gtk-theme='Adwaita-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
+font-name='Inter 11'
+color-scheme='prefer-dark'
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-uri-dark='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-options='zoom'
+primary-color='#07080B'
+secondary-color='#07080B'
+
+[org/gnome/login-screen]
+logo='/usr/share/pixmaps/vitalos-logo.png'
+banner-message-enable=true
+banner-message-text='Vital OS 0.1.0'

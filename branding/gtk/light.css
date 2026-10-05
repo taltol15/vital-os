@@ -1,0 +1,45 @@
+/* Vital OS — ivory day variant. Shell chrome stays Nocturne dark. */
+@define-color accent_color __ACCENT__;
+@define-color accent_bg_color __ACCENT__;
+@define-color accent_fg_color __ACCENT_FG__;
+
+@define-color window_bg_color #f6f1e7;
+@define-color window_fg_color #141820;
+@define-color view_bg_color #fbf8f2;
+@define-color view_fg_color #141820;
+@define-color headerbar_bg_color #efe8dc;
+@define-color headerbar_fg_color #141820;
+@define-color card_bg_color #fffdf8;
+@define-color card_fg_color #141820;
+@define-color popover_bg_color #fffdf8;
+@define-color popover_fg_color #141820;
+@define-color dialog_bg_color #f6f1e7;
+@define-color dialog_fg_color #141820;
+@define-color sidebar_bg_color #efe8dc;
+@define-color sidebar_fg_color #141820;
+@define-color secondary_sidebar_bg_color #f6f1e7;
+@define-color shade_color rgba(20, 24, 32, 0.12);
+
+@define-color theme_bg_color #f6f1e7;
+@define-color theme_fg_color #141820;
+@define-color theme_base_color #fffdf8;
+@define-color theme_text_color #141820;
+@define-color theme_selected_bg_color __ACCENT__;
+@define-color theme_selected_fg_color __ACCENT_FG__;
+@define-color theme_unfocused_selected_bg_color __ACCENT__;
+@define-color theme_unfocused_selected_fg_color __ACCENT_FG__;
+
+window, dialog, popover, .background {
+  background-color: @window_bg_color;
+  color: @window_fg_color;
+}
+
+headerbar, .titlebar {
+  background-color: @headerbar_bg_color;
+  color: @headerbar_fg_color;
+}
+
+selection, :selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+}

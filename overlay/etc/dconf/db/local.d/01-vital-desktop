@@ -1,0 +1,65 @@
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+gtk-theme='Adwaita-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
+font-name='Inter 11'
+document-font-name='Inter 11'
+monospace-font-name='IBM Plex Mono 10'
+clock-show-weekday=true
+enable-hot-corners=false
+
+[org/gnome/desktop/wm/preferences]
+button-layout='appmenu:minimize,maximize,close'
+titlebar-font='Inter Bold 11'
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-uri-dark='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-options='zoom'
+primary-color='#0E1116'
+secondary-color='#07080B'
+
+[org/gnome/desktop/screensaver]
+picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
+primary-color='#07080B'
+secondary-color='#07080B'
+
+[org/gnome/desktop/privacy]
+report-technical-problems=false
+remember-recent-files=true
+
+[org/gnome/system/location]
+enabled=false
+
+[org/gnome/shell]
+disable-user-extensions=false
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'ding@rastersoft.com']
+favorite-apps=['firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'libreoffice-writer.desktop', 'org.gnome.Software.desktop', 'vital-welcome.desktop']
+
+[org/gnome/shell/extensions/user-theme]
+name='Vital'
+
+[org/gnome/shell/extensions/dash-to-dock]
+dock-position='BOTTOM'
+dock-fixed=true
+autohide=false
+intellihide=false
+extend-height=false
+dash-max-icon-size=48
+transparency-mode='FIXED'
+background-opacity=0.72
+custom-background-color=true
+background-color='#161A21'
+apply-custom-theme=true
+custom-theme-shrink=true
+custom-theme-customize-running-dots=true
+custom-theme-running-dots-color='#C6A56A'
+running-indicator-style='DOTS'
+show-apps-at-top=false
+show-show-apps-button=true
+click-action='focus-or-previews'
+
+[org/gnome/software]
+allow-updates=true
+download-updates=false

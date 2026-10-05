@@ -1,0 +1,68 @@
+# Vital OS Plymouth script. Integer-friendly fade plus a gold progress rule.
+# The logo pixmap already contains the mark and wordmark.
+
+Window.SetBackgroundTopColor(0.027, 0.031, 0.043);
+Window.SetBackgroundBottomColor(0.027, 0.031, 0.043);
+
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetOpacity(0);
+
+progress_box.image = Image("progress.png");
+progress_box.sprite = Sprite();
+progress_box.sprite.SetOpacity(0.9);
+
+fade = 0;
+boot_progress = 0;
+
+fun center_logo() {
+    logo.sprite.SetX(Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
+    logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 8);
+}
+
+fun layout_progress() {
+    bar_w = Window.GetWidth() / 6;
+    if (bar_w < 120) {
+        bar_w = 120;
+    }
+    filled = bar_w * boot_progress;
+    if (filled < 2) {
+        filled = 2;
+    }
+    progress_box.sprite.SetImage(progress_box.image.Scale(filled, 2));
+    progress_box.sprite.SetX(Window.GetWidth() / 2 - bar_w / 2);
+    progress_box.sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 28);
+}
+
+center_logo();
+layout_progress();
+
+fun refresh_callback() {
+    if (fade < 1) {
+        fade = fade + 0.025;
+        if (fade > 1) fade = 1;
+    }
+    logo.sprite.SetOpacity(fade);
+    center_logo();
+    layout_progress();
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun progress_callback(duration, progress) {
+    boot_progress = progress;
+    layout_progress();
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+message_sprite = Sprite();
+
+fun message_callback(text) {
+    message_image = Image.Text(text, 0.78, 0.76, 0.70, 1);
+    message_sprite.SetImage(message_image);
+    message_sprite.SetX(Window.GetWidth() / 2 - message_image.GetWidth() / 2);
+    message_sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 48);
+}
+
+Plymouth.SetDisplayMessageFunction(message_callback);

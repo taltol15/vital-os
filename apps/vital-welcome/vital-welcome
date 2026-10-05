@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+"""Vital Welcome — first-run introduction for Vital OS."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk
+
+APP_ID = "org.vitalos.Welcome"
+STAMP = Path.home() / ".config" / "vitalos" / "welcome-completed"
+THEME_DIR = Path("/usr/share/vitalos/themes")
+REPO_THEME_DIR = Path(__file__).resolve().parents[2] / "branding" / "gtk"
+
+ACCENTS = {
+    "champagne": ("#C6A56A", "#E4C992", "#14110C", "Champagne"),
+    "emerald": ("#3E9B7A", "#B7E0D0", "#04140F", "Emerald"),
+    "ivory": ("#E4D7B8", "#F6F1E7", "#141820", "Ivory"),
+}
+
+CURATED = [
+    ("Firefox", "Web browser, installed from Mozilla's apt archive", "firefox.desktop"),
+    ("Files", "Nautilus file manager", "org.gnome.Nautilus.desktop"),
+    ("Console", "Terminal", "org.gnome.Console.desktop"),
+    ("Text Editor", "Writing and notes", "org.gnome.TextEditor.desktop"),
+    ("Image Viewer", "Loupe", "org.gnome.Loupe.desktop"),
+    ("Celluloid", "Video and audio playback", "io.github.celluloid_player.Celluloid.desktop"),
+    ("Writer", "Documents", "libreoffice-writer.desktop"),
+    ("Calc", "Spreadsheets", "libreoffice-calc.desktop"),
+    ("Software", "GNOME Software, with Flathub configured", "org.gnome.Software.desktop"),
+]
+
+
+def pretty_name() -> str:
+    path = Path("/etc/os-release")
+    if not path.exists():
+        return "Vital OS"
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("PRETTY_NAME="):
+            return line.split("=", 1)[1].strip().strip('"')
+    return "Vital OS"
+
+
+def theme_template(mode: str) -> str:
+    name = "dark.css" if mode == "dark" else "light.css"
+    for directory in (THEME_DIR, REPO_THEME_DIR):
+        path = directory / name
+        if path.is_file():
+            return path.read_text(encoding="utf-8")
+    raise FileNotFoundError(name)
+
+
+def render_css(mode: str, accent_key: str) -> str:
+    accent, highlight, foreground, _label = ACCENTS[accent_key]
+    text = theme_template(mode)
+    return (
+        text.replace("__ACCENT__", accent)
+        .replace("__ACCENT_HI__", highlight)
+        .replace("__ACCENT_FG__", foreground)
+    )
+
+
+def write_user_css(mode: str, accent_key: str) -> None:
+    css = render_css(mode, accent_key)
+    for relative in (".config/gtk-3.0/gtk.css", ".config/gtk-4.0/gtk.css"):
+        path = Path.home() / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(css, encoding="utf-8")
+    state = Path.home() / ".config" / "vitalos" / "appearance"
+    state.parent.mkdir(parents=True, exist_ok=True)
+    state.write_text(f"{mode}\n{accent_key}\n", encoding="utf-8")
+
+
+def settings(schema_id: str) -> Gio.Settings | None:
+    source = Gio.SettingsSchemaSource.get_default()
+    if source is None or source.lookup(schema_id, True) is None:
+        return None
+    try:
+        return Gio.Settings.new(schema_id)
+    except GLib.Error:
+        return None
+
+
+def has_key(store: Gio.Settings, key: str) -> bool:
+    schema = store.get_property("settings-schema")
+    return bool(schema.has_key(key))
+
+
+def set_bool(schema: str, key: str, value: bool) -> bool:
+    store = settings(schema)
+    if store is None or not has_key(store, key):
+        return False
+    store.set_boolean(key, value)
+    Gio.Settings.sync()
+    return True
+
+
+def get_bool(schema: str, key: str, default: bool = False) -> bool | None:
+    del default
+    store = settings(schema)
+    if store is None or not has_key(store, key):
+        return None
+    return store.get_boolean(key)
+
+
+def set_string(schema: str, key: str, value: str) -> bool:
+    store = settings(schema)
+    if store is None or not has_key(store, key):
+        return False
+    store.set_string(key, value)
+    Gio.Settings.sync()
+    return True
+
+
+def apply_appearance(mode: str, accent_key: str) -> None:
+    write_user_css(mode, accent_key)
+    if mode == "dark":
+        set_string("org.gnome.desktop.interface", "color-scheme", "prefer-dark")
+        set_string("org.gnome.desktop.interface", "gtk-theme", "Adwaita-dark")
+    else:
+        set_string("org.gnome.desktop.interface", "color-scheme", "default")
+        set_string("org.gnome.desktop.interface", "gtk-theme", "Adwaita")
+    set_string("org.gnome.desktop.interface", "icon-theme", "Papirus-Dark")
+    set_string("org.gnome.desktop.interface", "font-name", "Inter 11")
+
+
+def launch_desktop(desktop_id: str) -> None:
+    try:
+        Gio.DesktopAppInfo.new(desktop_id).launch([], None)
+    except (GLib.Error, AttributeError):
+        return
+
+
+def mark_complete() -> None:
+    if os.environ.get("VITAL_WELCOME_PREVIEW") == "1":
+        return
+    STAMP.parent.mkdir(parents=True, exist_ok=True)
+    STAMP.write_text("completed\n", encoding="utf-8")
+
+
+class WelcomeWindow(Adw.ApplicationWindow):
+    def __init__(self, app: Adw.Application) -> None:
+        super().__init__(application=app, title="Vital OS")
+        self.set_default_size(880, 640)
+        self._mode = "dark"
+        self._accent = "champagne"
+        self._closed = False
+
+        self._carousel = Adw.Carousel()
+        self._carousel.set_allow_mouse_drag(True)
+        self._carousel.set_allow_long_swipes(True)
+        self._carousel.append(self._page_welcome())
+        self._carousel.append(self._page_appearance())
+        self._carousel.append(self._page_apps())
+        self._carousel.append(self._page_privacy())
+        self._carousel.connect("notify::position", self._on_position)
+
+        dots = Adw.CarouselIndicatorDots()
+        dots.set_carousel(self._carousel)
+        dots.set_margin_top(8)
+        dots.set_margin_bottom(8)
+
+        self._back = Gtk.Button(label="Back")
+        self._back.connect("clicked", self._go_back)
+        self._next = Gtk.Button(label="Next")
+        self._next.add_css_class("suggested-action")
+        self._next.connect("clicked", self._go_next)
+
+        nav = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        nav.set_margin_start(24)
+        nav.set_margin_end(24)
+        nav.set_margin_bottom(20)
+        nav.append(self._back)
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        nav.append(spacer)
+        nav.append(self._next)
+
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        body.append(self._carousel)
+        body.append(dots)
+        body.append(nav)
+
+        header = Adw.HeaderBar()
+        header.set_show_end_title_buttons(True)
+        view = Adw.ToolbarView()
+        view.add_top_bar(header)
+        view.set_content(body)
+        self.set_content(view)
+        self._sync_buttons()
+        self.connect("close-request", self._on_close)
+        if not STAMP.exists():
+            apply_appearance(self._mode, self._accent)
+
+    def reveal_preview_page(self) -> None:
+        """Open one page and optionally write a PNG. Used for preview captures."""
+        raw = os.environ.get("VITAL_WELCOME_PAGE", "")
+        shot = os.environ.get("VITAL_WELCOME_SHOT", "")
+        if not raw.isdigit() and not shot:
+            return
+        index = int(raw) if raw.isdigit() else 0
+
+        def jump() -> bool:
+            widget = self._carousel.get_nth_page(index)
+            if widget is not None:
+                self._carousel.scroll_to(widget, False)
+            self._sync_buttons()
+            self.set_title(f"Vital OS")
+            if shot:
+                GLib.timeout_add(250, self._save_shot, shot, index)
+            return False
+
+        GLib.timeout_add(400, jump)
+
+    def _save_shot(self, path: str, index: int) -> bool:
+        try:
+            return self._save_shot_inner(path, index)
+        except Exception as exc:
+            Path("/tmp/vital-welcome-pos.txt").write_text(f"error {exc}\n", encoding="utf-8")
+            self._closed = True
+            self.close()
+            return False
+
+    def _save_shot_inner(self, path: str, index: int) -> bool:
+        self._shot_tries = getattr(self, "_shot_tries", 0) + 1
+        if self._shot_tries > 25:
+            raise RuntimeError(f"page {index} stayed at {self._carousel.get_position():.2f}")
+        if abs(self._carousel.get_position() - index) > 0.2:
+            widget = self._carousel.get_nth_page(index)
+            if widget is not None:
+                self._carousel.scroll_to(widget, False)
+            return True
+        width = self.get_width()
+        height = self.get_height()
+        if width < 100 or height < 100:
+            return True
+        gi.require_version("Gsk", "4.0")
+        from gi.repository import Gsk
+
+        paintable = Gtk.WidgetPaintable.new(self)
+        snapshot = Gtk.Snapshot()
+        paintable.snapshot(snapshot, width, height)
+        node = snapshot.to_node()
+        if node is None:
+            return True
+        native = self.get_native()
+        renderer = None
+        if native is not None and hasattr(native, "get_renderer"):
+            renderer = native.get_renderer()
+        if renderer is None:
+            renderer = Gsk.CairoRenderer.new()
+            surface = native.get_surface() if native is not None else None
+            if not renderer.realize(surface):
+                return True
+        texture = renderer.render_texture(node, None)
+        texture.save_to_png(path)
+        Path("/tmp/vital-welcome-pos.txt").write_text(
+            f"{index} {self._carousel.get_position():.2f} {width}x{height}\n",
+            encoding="utf-8",
+        )
+        self._closed = True
+        self.close()
+        return False
+
+    def _on_close(self, _window: Gtk.Window) -> bool:
+        if not self._closed:
+            self._closed = True
+            mark_complete()
+        return False
+
+    def _page_shell(self, title: str, subtitle: str) -> tuple[Gtk.ScrolledWindow, Gtk.Box]:
+        page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        page.set_margin_top(12)
+        page.set_margin_bottom(12)
+        page.set_margin_start(36)
+        page.set_margin_end(36)
+        heading = Gtk.Label(label=title, xalign=0)
+        heading.add_css_class("title-1")
+        page.append(heading)
+        detail = Gtk.Label(label=subtitle, xalign=0, wrap=True)
+        detail.add_css_class("dim-label")
+        detail.set_margin_bottom(8)
+        page.append(detail)
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_child(page)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        return scroll, page
+
+    def _page_welcome(self) -> Gtk.Widget:
+        status = Adw.StatusPage()
+        status.set_title("Vital OS")
+        status.set_description(
+            f"{pretty_name()}\n\n"
+            "A quiet desktop on Ubuntu 24.04 LTS. Graphite, ivory, and champagne — "
+            "original artwork, no borrowed logos.\n\n"
+            "This window opens once. You can open it again from the app grid."
+        )
+        status.set_icon_name("vitalos")
+        return status
+
+    def _page_appearance(self) -> Gtk.Widget:
+        scroll, page = self._page_shell(
+            "Appearance",
+            "Dark is the house style. The boot splash and top bar stay Nocturne either way. "
+            "Accent colors apply to applications.",
+        )
+        mode_group = Adw.PreferencesGroup(title="Mode")
+        self._dark = Gtk.CheckButton(label="Dark")
+        self._light = Gtk.CheckButton(label="Light", group=self._dark)
+        self._dark.set_active(True)
+        self._dark.connect("toggled", self._on_mode)
+        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+        mode_box.set_margin_start(12)
+        mode_box.set_margin_bottom(8)
+        mode_box.append(self._dark)
+        mode_box.append(self._light)
+        mode_group.add(mode_box)
+
+        accent_group = Adw.PreferencesGroup(title="Accent")
+        self._accent_buttons: dict[str, Gtk.CheckButton] = {}
+        first: Gtk.CheckButton | None = None
+        accent_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+        accent_box.set_margin_start(12)
+        for key, (_accent, _hi, _fg, label) in ACCENTS.items():
+            button = Gtk.CheckButton(label=label)
+            if first is None:
+                first = button
+                button.set_active(True)
+            else:
+                button.set_group(first)
+            button.connect("toggled", self._on_accent, key)
+            self._accent_buttons[key] = button
+            accent_box.append(button)
+        accent_group.add(accent_box)
+        page.append(mode_group)
+        page.append(accent_group)
+        return scroll
+
+    def _on_mode(self, button: Gtk.CheckButton) -> None:
+        if not button.get_active() and self._light.get_active():
+            self._mode = "light"
+        elif button.get_active():
+            self._mode = "dark"
+        apply_appearance(self._mode, self._accent)
+
+    def _on_accent(self, button: Gtk.CheckButton, key: str) -> None:
+        if button.get_active():
+            self._accent = key
+            apply_appearance(self._mode, self._accent)
+
+    def _page_apps(self) -> Gtk.Widget:
+        scroll, page = self._page_shell(
+            "Curated applications",
+            "A short set is installed. Flathub is configured for everything else. "
+            "The package list is config/packages.desktop.list in the Vital OS sources.",
+        )
+        group = Adw.PreferencesGroup()
+        for title, subtitle, desktop_id in CURATED:
+            row = Adw.ActionRow(title=title, subtitle=subtitle)
+            button = Gtk.Button(label="Open")
+            button.set_valign(Gtk.Align.CENTER)
+            button.connect("clicked", lambda _b, ident=desktop_id: launch_desktop(ident))
+            row.add_suffix(button)
+            group.add(row)
+        page.append(group)
+        return scroll
+
+    def _page_privacy(self) -> Gtk.Widget:
+        scroll, page = self._page_shell(
+            "Privacy and updates",
+            "Vital OS does not add a telemetry client. Location and problem reporting "
+            "below are GNOME settings. Ubuntu's crash reporter service is masked. "
+            "Applications you install can still check for their own updates.",
+        )
+        group = Adw.PreferencesGroup(title="This account")
+        self._add_switch(
+            group,
+            "Location services",
+            "Used by apps that ask for a place. Off to start.",
+            "org.gnome.system.location",
+            "enabled",
+        )
+        self._add_switch(
+            group,
+            "Automatic problem reporting",
+            "GNOME's technical-problem flag. Off to start.",
+            "org.gnome.desktop.privacy",
+            "report-technical-problems",
+        )
+        self._add_switch(
+            group,
+            "Remember recent files",
+            "Shows recent documents in Files and the overview.",
+            "org.gnome.desktop.privacy",
+            "remember-recent-files",
+        )
+        self._add_switch(
+            group,
+            "Download updates in the background",
+            "GNOME Software may download updates when you are online.",
+            "org.gnome.software",
+            "download-updates",
+        )
+        page.append(group)
+        note = Gtk.Label(
+            label="Security updates can also be applied by unattended-upgrades. "
+            "Open Software to review what is waiting.",
+            wrap=True,
+            xalign=0,
+        )
+        note.add_css_class("dim-label")
+        note.set_margin_top(8)
+        page.append(note)
+        return scroll
+
+    def _add_switch(
+        self,
+        group: Adw.PreferencesGroup,
+        title: str,
+        subtitle: str,
+        schema: str,
+        key: str,
+    ) -> None:
+        row = Adw.SwitchRow(title=title, subtitle=subtitle)
+        current = get_bool(schema, key)
+        if current is None:
+            row.set_sensitive(False)
+            row.set_subtitle(subtitle + " This setting is not on this system.")
+        else:
+            row.set_active(current)
+            row.connect("notify::active", self._on_switch, schema, key)
+        group.add(row)
+
+    def _on_switch(self, row: Adw.SwitchRow, _pspec: object, schema: str, key: str) -> None:
+        set_bool(schema, key, row.get_active())
+
+    def _on_position(self, _carousel: Adw.Carousel, _pspec: object) -> None:
+        self._sync_buttons()
+
+    def _page_index(self) -> int:
+        return int(round(self._carousel.get_position()))
+
+    def _sync_buttons(self) -> None:
+        index = self._page_index()
+        last = self._carousel.get_n_pages() - 1
+        self._back.set_sensitive(index > 0)
+        self._next.set_label("Start using Vital OS" if index >= last else "Next")
+
+    def _go_back(self, _button: Gtk.Button) -> None:
+        index = self._page_index()
+        if index > 0:
+            self._carousel.scroll_to(self._carousel.get_nth_page(index - 1), True)
+
+    def _go_next(self, _button: Gtk.Button) -> None:
+        index = self._page_index()
+        last = self._carousel.get_n_pages() - 1
+        if index >= last:
+            mark_complete()
+            self._closed = True
+            self.close()
+            return
+        self._carousel.scroll_to(self._carousel.get_nth_page(index + 1), True)
+
+
+class WelcomeApp(Adw.Application):
+    def __init__(self) -> None:
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.FLAGS_NONE)
+
+    def do_startup(self) -> None:
+        Adw.Application.do_startup(self)
+        style = Adw.StyleManager.get_default()
+        style.set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+        provider = Gtk.CssProvider()
+        provider.load_from_data(
+            b"""
+            @define-color accent_bg_color #c6a56a;
+            @define-color accent_fg_color #14110c;
+            @define-color accent_color #e4c992;
+            """
+        )
+        display = Gdk.Display.get_default()
+        if display is not None:
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+            )
+
+    def do_activate(self) -> None:
+        window = self.props.active_window
+        if window is None:
+            window = WelcomeWindow(self)
+        window.present()
+        window.reveal_preview_page()
+
+
+def main() -> int:
+    force = "--force" in sys.argv
+    preview = os.environ.get("VITAL_WELCOME_PREVIEW") == "1"
+    if STAMP.exists() and not force and not preview:
+        return 0
+    app = WelcomeApp()
+    return app.run([sys.argv[0]])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

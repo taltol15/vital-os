@@ -1,0 +1,45 @@
+{
+  "name": "Nocturne",
+  "description": "Deep graphite fields with a champagne-gold accent. Emerald is a secondary signal color, not a second brand.",
+  "colors": {
+    "graphite-950": "#07080B",
+    "graphite-900": "#0E1116",
+    "graphite-800": "#161A21",
+    "graphite-700": "#1E242E",
+    "graphite-600": "#2C3442",
+    "ivory-50": "#F6F1E7",
+    "ivory-300": "#C9C2B4",
+    "ivory-500": "#8A8478",
+    "champagne-300": "#E4C992",
+    "champagne-500": "#C6A56A",
+    "champagne-700": "#8C7340",
+    "emerald-500": "#3E9B7A",
+    "danger-500": "#C45C4A"
+  },
+  "roles": {
+    "background": "graphite-950",
+    "surface": "graphite-900",
+    "panel": "graphite-800",
+    "card": "graphite-700",
+    "text": "ivory-50",
+    "text-muted": "ivory-300",
+    "accent": "champagne-500",
+    "accent-highlight": "champagne-300",
+    "accent-pressed": "champagne-700",
+    "success": "emerald-500",
+    "danger": "danger-500"
+  },
+  "typography": {
+    "ui": "Inter",
+    "ui-package": "fonts-inter",
+    "mono": "IBM Plex Mono",
+    "mono-package": "fonts-ibm-plex",
+    "fallback": "Noto Sans",
+    "fallback-package": "fonts-noto-core"
+  },
+  "icon-theme": {
+    "name": "Papirus-Dark",
+    "package": "papirus-icon-theme",
+    "folder-tint": "palebrown"
+  }
+}

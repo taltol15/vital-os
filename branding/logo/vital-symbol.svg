@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Vital OS mark">
+  <title>Vital OS</title>
+  <circle cx="64" cy="64" r="46" stroke="#C6A56A" stroke-width="2"/>
+  <path d="M40 80 L64 44 L88 80" stroke="#F6F1E7" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="44" r="3.4" fill="#C6A56A"/>
+  <path d="M48 92 H80" stroke="#C6A56A" stroke-width="1.75" stroke-linecap="round"/>
+</svg>

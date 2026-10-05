@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Vital Welcome
+Comment=Introduction to Vital OS
+Exec=vital-welcome --force
+Icon=vitalos
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true
+Keywords=welcome;vital;setup;

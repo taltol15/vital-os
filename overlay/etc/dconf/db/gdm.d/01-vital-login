@@ -1,0 +1,25 @@
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+gtk-theme='Adwaita-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
+font-name='Inter 11'
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-uri-dark='file:///usr/share/backgrounds/vitalos/nocturne.png'
+picture-options='zoom'
+primary-color='#07080B'
+secondary-color='#07080B'
+
+[org/gnome/login-screen]
+logo='/usr/share/pixmaps/vitalos-logo.png'
+banner-message-enable=true
+banner-message-text='Vital OS 0.1.0'
+
+[org/gnome/shell]
+disable-user-extensions=false
+enabled-extensions=['user-theme@gnome-shell-extensions.gcampax.github.com']
+
+[org/gnome/shell/extensions/user-theme]
+name='Vital'
