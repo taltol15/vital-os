@@ -160,7 +160,7 @@ Real frames from QEMU (TCG, because KVM was not usable on the build host). BIOS 
 
 ![Console](docs/screenshots/qemu-console.png)
 
-The same ISO, booted again with `noplymouth` and a virtio GPU, reached the GDM greeter. This frame is from the guest, not a drawing:
+The rebuilt ISO, booted with `noplymouth` and a virtio GPU, reached this GDM greeter. The frame is from the guest:
 
 ![GDM, guest](docs/screenshots/qemu-gdm-live.png)
 
@@ -178,8 +178,8 @@ On an Ubuntu 24.04 host:
 - Calamares was not clicked through an install. Plymouth logged a missing `label-pango.so` plugin; the logo is a pixmap and still appeared. The ISO tree now also contains `/EFI/BOOT/BOOTX64.EFI` in addition to the appended FAT image. Secure Boot was not tested and is not supported.
 - Welcome no longer uses a carousel. GTK exports of the four pages show one page at a time, and the product line is `Vital OS 0.1.0` with `based on Ubuntu 24.04 LTS` underneath, including when `/etc/os-release` on the machine running the app is Ubuntu.
 - Marketplace unit tests cover authentication (401 without a token), schema rejection (422), ed25519 catalog signatures, ETag 304 responses, and the admin rate limit. The example script helper refuses to run without confirmation and accepts a dry run when the SHA-256 matches.
-- A later boot of that same ISO with `noplymouth` and `-vga virtio` reached GDM. `docs/screenshots/qemu-gdm-live.png` is the guest greeter: Vital OS wordmark, banner “Vital OS 0.1.0”, user “Vital Live”. Automatic login started `user@1000` and the framebuffer then stayed on a black spinner. A desktop photograph was not captured. KVM was still unavailable, so this was TCG.
-- The ISO on disk does not yet contain Marketplace or the Welcome fixes. Rebuilding it means a fresh debootstrap; that image was not replaced in this pass.
+- `sudo ./build.sh iso` was run again after these changes. It finished, and `build/output/VitalOS-0.1.0-amd64.iso` now contains `PRETTY_NAME="Vital OS 0.1.0"`, `vital-marketplace`, the bundled catalog, and `/EFI/BOOT/BOOTX64.EFI`. The image is gitignored.
+- That rebuilt ISO was booted in QEMU with TCG, `noplymouth`, and `-vga virtio`. It reached GDM. `docs/screenshots/qemu-gdm-live.png` is that guest greeter. Automatic login started `user@1000` on an earlier boot of the previous ISO and the framebuffer then stayed on a black spinner, so there is still no photograph of the GNOME desktop. KVM was not usable. Calamares was not clicked through an install.
 
 ## Trademarks and licenses
 
