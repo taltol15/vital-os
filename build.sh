@@ -237,6 +237,7 @@ prepare_stage() {
     install -m 0644 "${VITAL_ROOT_DIR}/config/flathub.flatpakrepo" "${stage}/flathub.flatpakrepo"
     mkdir -p "${stage}/overlay"
     cp -a "${VITAL_ROOT_DIR}/overlay/." "${stage}/overlay/"
+    chown -R root:root "${stage}/overlay"
 }
 
 build_squashfs() {
@@ -246,7 +247,7 @@ build_squashfs() {
     [[ "${#kernels[@]}" -gt 0 ]] || die "No kernel was installed into the rootfs"
     kver="$(basename "${kernels[-1]}")"
     kver="${kver#vmlinuz-}"
-    mkdir -p "${ISO_TREE}/casper"
+    mkdir -p "${ISO_TREE}/casper" "${ISO_TREE}/.disk"
     cp -a "${ROOTFS}/boot/vmlinuz-${kver}" "${ISO_TREE}/casper/vmlinuz"
     cp -a "${ROOTFS}/boot/initrd.img-${kver}" "${ISO_TREE}/casper/initrd"
     chmod 0644 "${ISO_TREE}/casper/vmlinuz" "${ISO_TREE}/casper/initrd"
@@ -384,7 +385,7 @@ build_iso() {
     mount_chroot "$ROOTFS"
     MOUNTED=1
     log "Copying overlay and branding"
-    rsync -a "${VITAL_ROOT_DIR}/overlay/" "${ROOTFS}/"
+    rsync -a --chown=root:root "${VITAL_ROOT_DIR}/overlay/" "${ROOTFS}/"
     python3 "${VITAL_ROOT_DIR}/tools/render_previews.py" --export "${WORK}/brand" --skip-docs
     install_brand_assets "$ROOTFS" "${WORK}/brand"
     prepare_stage
