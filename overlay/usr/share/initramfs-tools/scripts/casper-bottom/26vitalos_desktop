@@ -26,11 +26,8 @@ if [ -f "/root${DESKTOP_FILE}" ]; then
     chroot /root install -d -o "$USERNAME" -g "$USERNAME" "/home/$USERNAME/Desktop"
     chroot /root install -o "$USERNAME" -g "$USERNAME" \
         "$DESKTOP_FILE" "/home/$USERNAME/Desktop/vitalos-install.desktop"
-    if [ -x /root/usr/bin/dbus-run-session ] && [ -x /root/usr/bin/gio ]; then
-        chroot /root sudo -i -u "$USERNAME" dbus-run-session -- \
-            gio set "/home/$USERNAME/Desktop/vitalos-install.desktop" metadata::trusted true \
-            || true
-    fi
+    # Do not start a user dbus session here. The initramfs chroot often
+    # cannot open /dev/null, and a login shell would source flatpak.sh and fail.
 fi
 
 log_end_msg
