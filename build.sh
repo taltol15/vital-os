@@ -98,7 +98,10 @@ ensure_space_and_swap() {
             chmod 600 "$SWAP_ON"
             mkswap "$SWAP_ON"
         fi
-        swapon "$SWAP_ON"
+        if ! swapon "$SWAP_ON"; then
+            log "Could not enable the swap file on this filesystem; continuing without it"
+            SWAP_ON=""
+        fi
     fi
 }
 
@@ -257,17 +260,23 @@ build_squashfs() {
 
     squash="${ISO_TREE}/casper/filesystem.squashfs"
     rm -f "$squash"
-    log "Creating squashfs (${SQUASH_COMP})"
+    local procs mem_mb
+    procs="$(nproc)"
+    mem_mb="$(awk '/MemAvailable:/ {print int($2/1024)}' /proc/meminfo)"
+    if [[ "$mem_mb" -lt 8192 && "$procs" -gt 2 ]]; then
+        procs=2
+    fi
+    log "Creating squashfs (${SQUASH_COMP}, ${procs} threads, ${mem_mb} MB available)"
     # Keep the mount-point directories. Casper and the installed system
     # need them present even when they are empty.
     if [[ "$SQUASH_COMP" == "xz" ]]; then
-        mksquashfs "$ROOTFS" "$squash" -comp xz -Xbcj x86 -b 1M -processors "$(nproc)" \
+        mksquashfs "$ROOTFS" "$squash" -comp xz -Xbcj x86 -b 1M -processors "$procs" \
             -wildcards \
             -e 'proc/*' 'sys/*' 'dev/*' 'run/*' 'tmp/*' 'var/tmp/*' \
                'var/cache/apt/archives/*' 'var/lib/apt/lists/*' \
             -noappend
     else
-        mksquashfs "$ROOTFS" "$squash" -comp "$SQUASH_COMP" -b 1M -processors "$(nproc)" \
+        mksquashfs "$ROOTFS" "$squash" -comp "$SQUASH_COMP" -b 1M -processors "$procs" \
             -wildcards \
             -e 'proc/*' 'sys/*' 'dev/*' 'run/*' 'tmp/*' 'var/tmp/*' \
                'var/cache/apt/archives/*' 'var/lib/apt/lists/*' \
