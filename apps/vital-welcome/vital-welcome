@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,13 +14,19 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk
 
+for _extra in (Path(__file__).resolve().parent, Path("/usr/lib/vitalos")):
+    if _extra.is_dir() and str(_extra) not in sys.path:
+        sys.path.insert(0, str(_extra))
+from identity import fallback_version, product_identity, read_os_release
+
 APP_ID = "org.vitalos.Welcome"
+PAGE_NAMES = ("welcome", "appearance", "apps", "privacy")
 STAMP = Path.home() / ".config" / "vitalos" / "welcome-completed"
 THEME_DIR = Path("/usr/share/vitalos/themes")
 REPO_THEME_DIR = Path(__file__).resolve().parents[2] / "branding" / "gtk"
 
 ACCENTS = {
-    "champagne": ("#C6A56A", "#E4C992", "#14110C", "Champagne"),
+    "champagne": ("#C6A56A", "#E6D3A4", "#14110C", "Champagne"),
     "emerald": ("#3E9B7A", "#B7E0D0", "#04140F", "Emerald"),
     "ivory": ("#E4D7B8", "#F6F1E7", "#141820", "Ivory"),
 }
@@ -37,14 +44,23 @@ CURATED = [
 ]
 
 
-def pretty_name() -> str:
-    path = Path("/etc/os-release")
-    if not path.exists():
-        return "Vital OS"
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith("PRETTY_NAME="):
-            return line.split("=", 1)[1].strip().strip('"')
-    return "Vital OS"
+def welcome_lines() -> tuple[str, str]:
+    version_file = Path(__file__).resolve().parents[2] / "VERSION"
+    return product_identity(read_os_release(), fallback_version(version_file))
+
+
+def symbol_texture() -> Gdk.Texture | None:
+    candidates = [
+        Path("/usr/share/icons/hicolor/256x256/apps/vitalos.png"),
+        Path(__file__).resolve().parents[2] / "docs" / "screenshots" / "symbol.png",
+    ]
+    for path in candidates:
+        if path.is_file():
+            try:
+                return Gdk.Texture.new_from_filename(str(path))
+            except GLib.Error:
+                continue
+    return None
 
 
 def theme_template(mode: str) -> str:
@@ -123,11 +139,26 @@ def apply_appearance(mode: str, accent_key: str) -> None:
     if mode == "dark":
         set_string("org.gnome.desktop.interface", "color-scheme", "prefer-dark")
         set_string("org.gnome.desktop.interface", "gtk-theme", "Adwaita-dark")
+        wallpaper = "file:///usr/share/backgrounds/vitalos/nocturne.png"
     else:
         set_string("org.gnome.desktop.interface", "color-scheme", "default")
         set_string("org.gnome.desktop.interface", "gtk-theme", "Adwaita")
+        wallpaper = "file:///usr/share/backgrounds/vitalos/nocturne-day.png"
+    set_string("org.gnome.desktop.background", "picture-uri", wallpaper)
+    set_string("org.gnome.desktop.background", "picture-uri-dark", "file:///usr/share/backgrounds/vitalos/nocturne.png")
     set_string("org.gnome.desktop.interface", "icon-theme", "Papirus-Dark")
     set_string("org.gnome.desktop.interface", "font-name", "Inter 11")
+
+
+def open_marketplace() -> None:
+    candidates = [
+        Path("/usr/bin/vital-marketplace"),
+        Path(__file__).resolve().parents[1] / "vital-marketplace" / "vital-marketplace",
+    ]
+    for path in candidates:
+        if path.is_file():
+            subprocess.Popen([str(path)], start_new_session=True)
+            return
 
 
 def launch_desktop(desktop_id: str) -> None:
@@ -152,19 +183,22 @@ class WelcomeWindow(Adw.ApplicationWindow):
         self._accent = "champagne"
         self._closed = False
 
-        self._carousel = Adw.Carousel()
-        self._carousel.set_allow_mouse_drag(True)
-        self._carousel.set_allow_long_swipes(True)
-        self._carousel.append(self._page_welcome())
-        self._carousel.append(self._page_appearance())
-        self._carousel.append(self._page_apps())
-        self._carousel.append(self._page_privacy())
-        self._carousel.connect("notify::position", self._on_position)
+        self._stack = Gtk.Stack()
+        self._stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self._stack.set_transition_duration(220)
+        self._stack.set_hhomogeneous(True)
+        self._stack.set_vhomogeneous(True)
+        self._stack.set_hexpand(True)
+        self._stack.set_vexpand(True)
+        self._stack.set_overflow(Gtk.Overflow.HIDDEN)
+        self._stack.add_named(self._page_welcome(), "welcome")
+        self._stack.add_named(self._page_appearance(), "appearance")
+        self._stack.add_named(self._page_apps(), "apps")
+        self._stack.add_named(self._page_privacy(), "privacy")
+        self._stack.connect("notify::visible-child-name", self._on_page)
 
         dots = Adw.CarouselIndicatorDots()
-        dots.set_carousel(self._carousel)
-        dots.set_margin_top(8)
-        dots.set_margin_bottom(8)
+        dots.set_visible(False)
 
         self._back = Gtk.Button(label="Back")
         self._back.connect("clicked", self._go_back)
@@ -182,8 +216,14 @@ class WelcomeWindow(Adw.ApplicationWindow):
         nav.append(spacer)
         nav.append(self._next)
 
+        clamp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        clamp.set_hexpand(True)
+        clamp.set_vexpand(True)
+        clamp.set_overflow(Gtk.Overflow.HIDDEN)
+        clamp.append(self._stack)
+
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        body.append(self._carousel)
+        body.append(clamp)
         body.append(dots)
         body.append(nav)
 
@@ -205,13 +245,13 @@ class WelcomeWindow(Adw.ApplicationWindow):
         if not raw.isdigit() and not shot:
             return
         index = int(raw) if raw.isdigit() else 0
+        index = max(0, min(index, len(PAGE_NAMES) - 1))
 
         def jump() -> bool:
-            widget = self._carousel.get_nth_page(index)
-            if widget is not None:
-                self._carousel.scroll_to(widget, False)
+            self._stack.set_transition_type(Gtk.StackTransitionType.NONE)
+            self._stack.set_visible_child_name(PAGE_NAMES[index])
             self._sync_buttons()
-            self.set_title(f"Vital OS")
+            self.set_title("Vital OS")
             if shot:
                 GLib.timeout_add(250, self._save_shot, shot, index)
             return False
@@ -230,11 +270,9 @@ class WelcomeWindow(Adw.ApplicationWindow):
     def _save_shot_inner(self, path: str, index: int) -> bool:
         self._shot_tries = getattr(self, "_shot_tries", 0) + 1
         if self._shot_tries > 25:
-            raise RuntimeError(f"page {index} stayed at {self._carousel.get_position():.2f}")
-        if abs(self._carousel.get_position() - index) > 0.2:
-            widget = self._carousel.get_nth_page(index)
-            if widget is not None:
-                self._carousel.scroll_to(widget, False)
+            raise RuntimeError(f"page {index} stayed on {self._stack.get_visible_child_name()}")
+        if self._stack.get_visible_child_name() != PAGE_NAMES[index]:
+            self._stack.set_visible_child_name(PAGE_NAMES[index])
             return True
         width = self.get_width()
         height = self.get_height()
@@ -261,7 +299,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
         texture = renderer.render_texture(node, None)
         texture.save_to_png(path)
         Path("/tmp/vital-welcome-pos.txt").write_text(
-            f"{index} {self._carousel.get_position():.2f} {width}x{height}\n",
+            f"{index} {self._stack.get_visible_child_name()} {width}x{height}\n",
             encoding="utf-8",
         )
         self._closed = True
@@ -280,6 +318,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
         page.set_margin_bottom(12)
         page.set_margin_start(36)
         page.set_margin_end(36)
+        page.set_hexpand(True)
         heading = Gtk.Label(label=title, xalign=0)
         heading.add_css_class("title-1")
         page.append(heading)
@@ -289,20 +328,35 @@ class WelcomeWindow(Adw.ApplicationWindow):
         page.append(detail)
         scroll = Gtk.ScrolledWindow()
         scroll.set_child(page)
+        scroll.set_propagate_natural_width(False)
+        scroll.set_hexpand(True)
+        scroll.set_vexpand(True)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         return scroll, page
 
     def _page_welcome(self) -> Gtk.Widget:
+        primary, secondary = welcome_lines()
         status = Adw.StatusPage()
         status.set_title("Vital OS")
         status.set_description(
-            f"{pretty_name()}\n\n"
-            "A quiet desktop on Ubuntu 24.04 LTS. Graphite, ivory, and champagne — "
-            "original artwork, no borrowed logos.\n\n"
-            "This window opens once. You can open it again from the app grid."
+            f"{primary}\n{secondary}\n\n"
+            "A quiet desktop. Graphite, ivory, and champagne. "
+            "The artwork is original.\n\n"
+            "This window opens once. Vital Marketplace stays in the app grid."
         )
-        status.set_icon_name("vitalos")
-        return status
+        texture = symbol_texture()
+        if texture is not None:
+            status.set_paintable(texture)
+        else:
+            status.set_icon_name("vitalos")
+        status.set_hexpand(True)
+        status.set_vexpand(True)
+        holder = Gtk.Box()
+        holder.set_hexpand(True)
+        holder.set_vexpand(True)
+        holder.set_overflow(Gtk.Overflow.HIDDEN)
+        holder.append(status)
+        return holder
 
     def _page_appearance(self) -> Gtk.Widget:
         scroll, page = self._page_shell(
@@ -361,6 +415,16 @@ class WelcomeWindow(Adw.ApplicationWindow):
             "The package list is config/packages.desktop.list in the Vital OS sources.",
         )
         group = Adw.PreferencesGroup()
+        market = Adw.ActionRow(
+            title="Vital Marketplace",
+            subtitle="Browse, install, and remove extra applications. Also in the app grid.",
+        )
+        market_button = Gtk.Button(label="Open")
+        market_button.set_valign(Gtk.Align.CENTER)
+        market_button.add_css_class("suggested-action")
+        market_button.connect("clicked", lambda _button: open_marketplace())
+        market.add_suffix(market_button)
+        group.add(market)
         for title, subtitle, desktop_id in CURATED:
             row = Adw.ActionRow(title=title, subtitle=subtitle)
             button = Gtk.Button(label="Open")
@@ -440,32 +504,35 @@ class WelcomeWindow(Adw.ApplicationWindow):
     def _on_switch(self, row: Adw.SwitchRow, _pspec: object, schema: str, key: str) -> None:
         set_bool(schema, key, row.get_active())
 
-    def _on_position(self, _carousel: Adw.Carousel, _pspec: object) -> None:
+    def _on_page(self, _stack: Gtk.Stack, _pspec: object) -> None:
         self._sync_buttons()
 
     def _page_index(self) -> int:
-        return int(round(self._carousel.get_position()))
+        name = self._stack.get_visible_child_name()
+        if name in PAGE_NAMES:
+            return PAGE_NAMES.index(name)
+        return 0
 
     def _sync_buttons(self) -> None:
         index = self._page_index()
-        last = self._carousel.get_n_pages() - 1
+        last = len(PAGE_NAMES) - 1
         self._back.set_sensitive(index > 0)
         self._next.set_label("Start using Vital OS" if index >= last else "Next")
 
     def _go_back(self, _button: Gtk.Button) -> None:
         index = self._page_index()
         if index > 0:
-            self._carousel.scroll_to(self._carousel.get_nth_page(index - 1), True)
+            self._stack.set_visible_child_name(PAGE_NAMES[index - 1])
 
     def _go_next(self, _button: Gtk.Button) -> None:
         index = self._page_index()
-        last = self._carousel.get_n_pages() - 1
+        last = len(PAGE_NAMES) - 1
         if index >= last:
             mark_complete()
             self._closed = True
             self.close()
             return
-        self._carousel.scroll_to(self._carousel.get_nth_page(index + 1), True)
+        self._stack.set_visible_child_name(PAGE_NAMES[index + 1])
 
 
 class WelcomeApp(Adw.Application):
@@ -481,7 +548,7 @@ class WelcomeApp(Adw.Application):
             b"""
             @define-color accent_bg_color #c6a56a;
             @define-color accent_fg_color #14110c;
-            @define-color accent_color #e4c992;
+            @define-color accent_color #e6d3a4;
             """
         )
         display = Gdk.Display.get_default()

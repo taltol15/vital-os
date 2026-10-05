@@ -20,6 +20,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# Marketplace server state and secrets. Never commit tokens or private keys.
+*.db
+*.key
+marketplace/server/data/
+marketplace/data/
+
 # Editor
 .DS_Store
 *~

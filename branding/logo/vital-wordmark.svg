@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" fill="none" role="img" aria-label="Vital OS wordmark">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 160" fill="none" role="img" aria-label="Vital OS wordmark">
   <title>Vital OS</title>
-  <text x="8" y="96" fill="#F6F1E7" font-family="Inter, sans-serif" font-size="72" font-weight="500" letter-spacing="8">VITAL</text>
-  <text x="290" y="94" fill="#C6A56A" font-family="Inter, sans-serif" font-size="24" font-weight="500" letter-spacing="3">OS</text>
+  <g fill="none" stroke="#F3EEE4" stroke-width="5.25" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 40 L78 122 L128 40"/>
+    <path d="M164 40 V122"/>
+    <path d="M196 40 H286"/>
+    <path d="M241 40 V122"/>
+    <path d="M318 122 L374 40 L430 122"/>
+    <path d="M340 88 H408"/>
+    <path d="M466 40 V122 H546"/>
+  </g>
+  <g fill="none" stroke="#C6A56A" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round" transform="translate(600 58) scale(1.05)">
+    <circle cx="28" cy="42" r="18"/>
+    <path d="M62 24 H84 C96 24 96 40 82 42 H66 C52 44 54 62 70 62 H96"/>
+  </g>
 </svg>

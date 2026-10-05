@@ -2,8 +2,8 @@ Vital OS 0.1.0
 ================
 
 Original Vital OS branding (mark, wordmark, wallpapers, Plymouth theme,
-GRUB theme, GNOME Shell stylesheet, and Vital Welcome) is released under
-the GNU General Public License, version 3 or later.
+GRUB theme, GNOME Shell stylesheet, Vital Welcome, and Vital Marketplace)
+is released under the GNU General Public License, version 3 or later.
 
 Third-party components installed by the image build, not vendored as
 binaries in this repository except the Flathub remote description:

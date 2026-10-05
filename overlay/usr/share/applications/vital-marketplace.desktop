@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Vital Marketplace
+Comment=Install and remove catalog applications
+Exec=vital-marketplace
+Icon=vitalos-market
+Terminal=false
+Categories=System;PackageManager;
+StartupNotify=true
+Keywords=marketplace;software;install;flatpak;

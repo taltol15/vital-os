@@ -17,13 +17,13 @@ titlebar-font='Inter Bold 11'
 picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
 picture-uri-dark='file:///usr/share/backgrounds/vitalos/nocturne.png'
 picture-options='zoom'
-primary-color='#0E1116'
-secondary-color='#07080B'
+primary-color='#0C0F14'
+secondary-color='#050608'
 
 [org/gnome/desktop/screensaver]
 picture-uri='file:///usr/share/backgrounds/vitalos/nocturne.png'
-primary-color='#07080B'
-secondary-color='#07080B'
+primary-color='#050608'
+secondary-color='#050608'
 
 [org/gnome/desktop/privacy]
 report-technical-problems=false
@@ -35,7 +35,7 @@ enabled=false
 [org/gnome/shell]
 disable-user-extensions=false
 enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com', 'ding@rastersoft.com']
-favorite-apps=['firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'libreoffice-writer.desktop', 'org.gnome.Software.desktop', 'vital-welcome.desktop']
+favorite-apps=['firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'libreoffice-writer.desktop', 'vital-marketplace.desktop', 'org.gnome.Software.desktop', 'vital-welcome.desktop']
 
 [org/gnome/shell/extensions/user-theme]
 name='Vital'
@@ -50,7 +50,7 @@ dash-max-icon-size=48
 transparency-mode='FIXED'
 background-opacity=0.72
 custom-background-color=true
-background-color='#161A21'
+background-color='#141820'
 apply-custom-theme=true
 custom-theme-shrink=true
 custom-theme-customize-running-dots=true

@@ -156,8 +156,10 @@ install_brand_assets() {
     install -d "${root}/usr/share/backgrounds/vitalos"
     install -m 0644 "${brand}/wallpaper-nocturne.png" "${root}/usr/share/backgrounds/vitalos/nocturne.png"
     install -m 0644 "${brand}/wallpaper-arc.png" "${root}/usr/share/backgrounds/vitalos/nocturne-arc.png"
+    install -m 0644 "${brand}/wallpaper-day.png" "${root}/usr/share/backgrounds/vitalos/nocturne-day.png"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/wallpapers/nocturne.svg" "${root}/usr/share/backgrounds/vitalos/nocturne.svg"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/wallpapers/nocturne-arc.svg" "${root}/usr/share/backgrounds/vitalos/nocturne-arc.svg"
+    install -m 0644 "${VITAL_ROOT_DIR}/branding/wallpapers/nocturne-day.svg" "${root}/usr/share/backgrounds/vitalos/nocturne-day.svg"
 
     install -d "${root}/usr/share/pixmaps" \
         "${root}/usr/share/icons/hicolor/scalable/apps" \
@@ -210,7 +212,22 @@ install_brand_assets() {
     install -m 0644 "${VITAL_ROOT_DIR}/branding/logo/vital-symbol.svg" "${root}/usr/share/vitalos/brand/vital-symbol.svg"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/logo/vital-wordmark.svg" "${root}/usr/share/vitalos/brand/vital-wordmark.svg"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/logo/vital-lockup.svg" "${root}/usr/share/vitalos/brand/vital-lockup.svg"
+    install -d "${root}/usr/lib/vitalos" "${root}/usr/bin" "${root}/usr/libexec" \
+        "${root}/usr/share/vitalos/marketplace" \
+        "${root}/usr/share/icons/hicolor/scalable/apps"
     install -m 0755 "${VITAL_ROOT_DIR}/apps/vital-welcome/vital-welcome" "${root}/usr/bin/vital-welcome"
+    install -m 0644 "${VITAL_ROOT_DIR}/apps/vital-welcome/identity.py" "${root}/usr/lib/vitalos/identity.py"
+    install -m 0755 "${VITAL_ROOT_DIR}/apps/vital-marketplace/vital-marketplace" "${root}/usr/bin/vital-marketplace"
+    install -m 0755 "${VITAL_ROOT_DIR}/apps/vital-marketplace/vital-marketplace-helper" "${root}/usr/libexec/vital-marketplace-helper"
+    install -m 0755 "${VITAL_ROOT_DIR}/marketplace/cli/vital-market" "${root}/usr/bin/vital-market"
+    install -m 0644 "${VITAL_ROOT_DIR}/marketplace/python/vital_catalog.py" "${root}/usr/lib/vitalos/vital_catalog.py"
+    cp -a "${VITAL_ROOT_DIR}/marketplace/catalog/." "${root}/usr/share/vitalos/marketplace/"
+    install -m 0644 "${VITAL_ROOT_DIR}/marketplace/keys/catalog.pub" "${root}/usr/share/vitalos/marketplace/catalog.pub"
+    install -m 0644 "${VITAL_ROOT_DIR}/branding/logo/vital-market.svg" \
+        "${root}/usr/share/icons/hicolor/scalable/apps/vitalos-market.svg"
+    if [[ -f "${brand}/market-256.png" ]]; then
+        install -m 0644 "${brand}/market-256.png" "${root}/usr/share/icons/hicolor/256x256/apps/vitalos-market.png"
+    fi
 
     rm -rf "${root}/etc/calamares"
     install -d "${root}/etc/calamares/branding/vitalos"
@@ -328,6 +345,8 @@ build_iso_tree() {
     mkfs.vfat -n VITAL_EFI "$efi_img" >/dev/null
     mmd -i "$efi_img" ::/EFI ::/EFI/BOOT
     mcopy -i "$efi_img" "${efi_dir}/BOOTX64.EFI" ::/EFI/BOOT/BOOTX64.EFI
+    mkdir -p "${ISO_TREE}/EFI/BOOT"
+    install -m 0644 "${efi_dir}/BOOTX64.EFI" "${ISO_TREE}/EFI/BOOT/BOOTX64.EFI"
 
     local sums
     sums="$(mktemp)"

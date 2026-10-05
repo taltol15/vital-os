@@ -1,0 +1,6 @@
+# No production signing key is shipped.
+# Generate one on the catalog server:
+#   vital-market keygen --private /etc/vital/market.key --public /usr/share/vitalos/marketplace/catalog.pub
+# Install that public file into the image, then set catalog_url in
+# /etc/vital/marketplace.conf. Until a real public key is here, the
+# Marketplace app uses the bundled catalog and refuses unsigned remote catalogs.

@@ -1,0 +1,15 @@
+# Example only. Point a hostname you control at this host, then:
+#   caddy run --config Caddyfile.example
+# Caddy obtains a certificate and proxies to the catalog on localhost.
+#
+# market.example {
+#     reverse_proxy 127.0.0.1:8080
+# }
+#
+# The Marketplace image reads that origin from /etc/vital/marketplace.conf:
+#   catalog_url=https://market.example/v1/catalog
+# Ship the matching ed25519 public key at
+#   /usr/share/vitalos/marketplace/catalog.pub
+market.example {
+    reverse_proxy 127.0.0.1:8080
+}

@@ -30,11 +30,26 @@ required=(
     branding/logo/vital-lockup.svg
     branding/wallpapers/nocturne.svg
     branding/wallpapers/nocturne-arc.svg
+    branding/wallpapers/nocturne-day.svg
+    branding/logo/vital-symbol-mono.svg
+    branding/logo/vital-symbol-accent.svg
+    branding/logo/vital-wordmark-mono.svg
     branding/plymouth/vitalos.script
     branding/gnome-shell/gnome-shell.css
     branding/gtk/dark.css
     branding/gtk/light.css
     apps/vital-welcome/vital-welcome
+    apps/vital-welcome/identity.py
+    apps/vital-marketplace/vital-marketplace
+    apps/vital-marketplace/vital-marketplace-helper
+    marketplace/cli/vital-market
+    marketplace/python/vital_catalog.py
+    marketplace/schema/catalog-item.schema.json
+    marketplace/schema/catalog.schema.json
+    marketplace/catalog/catalog.json
+    marketplace/server/vital_market/app.py
+    overlay/etc/vital/marketplace.conf
+    overlay/usr/share/applications/vital-marketplace.desktop
     overlay/etc/casper.conf
     overlay/etc/dconf/db/local.d/01-vital-desktop
 )
@@ -72,7 +87,33 @@ for script in "${scripts[@]}"; do
     bash -n "$script" || bad "bash -n failed for ${script}"
 done
 
-python3 -m py_compile apps/vital-welcome/vital-welcome tools/render_previews.py
+python3 -m py_compile \
+    apps/vital-welcome/vital-welcome \
+    apps/vital-welcome/identity.py \
+    apps/vital-marketplace/vital-marketplace \
+    apps/vital-marketplace/vital-marketplace-helper \
+    marketplace/python/vital_catalog.py \
+    marketplace/cli/vital-market \
+    marketplace/tools/build_catalog.py \
+    marketplace/server/vital_market/app.py \
+    tools/render_previews.py
+
+note "checking catalog.json"
+python3 marketplace/tools/build_catalog.py --check || bad "catalog.json does not match sources"
+
+(
+    cd apps/vital-welcome
+    python3 -m unittest test_identity.py
+) || bad "welcome identity tests failed"
+
+if python3 -c "import fastapi, jsonschema, cryptography, pytest" >/dev/null 2>&1; then
+    note "running marketplace tests"
+    python3 -m pytest marketplace/server/tests marketplace/python/tests -q || bad "marketplace tests failed"
+elif [[ "${VITAL_REQUIRE_MARKET_TESTS:-}" == "1" ]]; then
+    bad "marketplace test dependencies are not installed"
+else
+    note "marketplace pytest dependencies are not installed; skipped"
+fi
 
 if command -v shellcheck >/dev/null 2>&1; then
     note "running shellcheck"

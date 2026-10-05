@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 160" fill="none" role="img" aria-label="Vital OS">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 180" fill="none" role="img" aria-label="Vital OS">
   <title>Vital OS</title>
-  <g transform="translate(16 16)">
-    <circle cx="64" cy="64" r="46" stroke="#C6A56A" stroke-width="2"/>
-    <path d="M40 80 L64 44 L88 80" stroke="#F6F1E7" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="64" cy="44" r="3.4" fill="#C6A56A"/>
-    <path d="M48 92 H80" stroke="#C6A56A" stroke-width="1.75" stroke-linecap="round"/>
+  <g transform="translate(18 26)">
+    <circle cx="64" cy="64" r="49" stroke="#C6A56A" stroke-width="1.35"/>
+    <circle cx="64" cy="64" r="43.25" stroke="#F3EEE4" stroke-opacity="0.28" stroke-width="0.6"/>
+    <path d="M39 79.5 L64 41.5 L89 79.5" stroke="#F3EEE4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="64" cy="41.5" r="2.55" fill="#C6A56A"/>
+    <path d="M51 91.5 H77" stroke="#C6A56A" stroke-width="1.35" stroke-linecap="round"/>
   </g>
-  <text x="180" y="104" fill="#F6F1E7" font-family="Inter, sans-serif" font-size="68" font-weight="500" letter-spacing="7">VITAL</text>
-  <text x="440" y="102" fill="#C6A56A" font-family="Inter, sans-serif" font-size="22" font-weight="500" letter-spacing="3">OS</text>
+  <g transform="translate(168 14)" fill="none" stroke="#F3EEE4" stroke-width="5.25" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 40 L78 122 L128 40"/>
+    <path d="M164 40 V122"/>
+    <path d="M196 40 H286"/>
+    <path d="M241 40 V122"/>
+    <path d="M318 122 L374 40 L430 122"/>
+    <path d="M340 88 H408"/>
+    <path d="M466 40 V122 H546"/>
+  </g>
+  <g transform="translate(768 72) scale(1.05)" fill="none" stroke="#C6A56A" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="28" cy="42" r="18"/>
+    <path d="M62 24 H84 C96 24 96 40 82 42 H66 C52 44 54 62 70 62 H96"/>
+  </g>
 </svg>

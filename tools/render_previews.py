@@ -193,6 +193,8 @@ def export_assets(export_dir: Path, shots: bool) -> None:
     lock_svg = BRAND / "logo" / "vital-lockup.svg"
     wall_svg = BRAND / "wallpapers" / "nocturne.svg"
     arc_svg = BRAND / "wallpapers" / "nocturne-arc.svg"
+    day_svg = BRAND / "wallpapers" / "nocturne-day.svg"
+    market_svg = BRAND / "logo" / "vital-market.svg"
 
     symbol = export_dir / "symbol-512.png"
     rsvg(symbol_svg, symbol, width=512)
@@ -202,6 +204,8 @@ def export_assets(export_dir: Path, shots: bool) -> None:
     rsvg(lock_svg, export_dir / "lockup.png", width=1200)
     rsvg(wall_svg, export_dir / "wallpaper-nocturne.png", width=1920, height=1080)
     rsvg(arc_svg, export_dir / "wallpaper-arc.png", width=1920, height=1080)
+    rsvg(day_svg, export_dir / "wallpaper-day.png", width=1920, height=1080)
+    rsvg(market_svg, export_dir / "market-256.png", width=256)
     shutil.copyfile(export_dir / "wallpaper-nocturne.png", export_dir / "lock-background.png")
     shutil.copyfile(export_dir / "wallpaper-nocturne.png", export_dir / "grub-background.png")
 
@@ -229,6 +233,8 @@ def export_assets(export_dir: Path, shots: bool) -> None:
             "lockup.png": export_dir / "lockup.png",
             "wallpaper.png": export_dir / "wallpaper-nocturne.png",
             "wallpaper-arc.png": export_dir / "wallpaper-arc.png",
+            "wallpaper-day.png": export_dir / "wallpaper-day.png",
+            "market-icon.png": export_dir / "market-256.png",
             "plymouth.png": export_dir / "plymouth-frame.png",
             "gdm.png": export_dir / "gdm-frame.png",
             "desktop.png": export_dir / "desktop-frame.png",

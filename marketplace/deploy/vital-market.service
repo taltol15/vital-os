@@ -1,0 +1,23 @@
+[Unit]
+Description=Vital Marketplace catalog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vital-market
+Group=vital-market
+WorkingDirectory=/usr/lib/vital-market
+Environment=PYTHONPATH=/usr/lib/vital-market:/usr/lib/vital-market/python
+Environment=VITAL_MARKET_SCHEMA=/usr/lib/vital-market/schema/catalog-item.schema.json
+Environment=VITAL_MARKET_DB=/var/lib/vital-market/market.db
+Environment=VITAL_MARKET_DATA=/var/lib/vital-market
+Environment=VITAL_MARKET_SIGNING_KEY_FILE=/etc/vital/market.key
+Environment=VITAL_MARKET_RATE_LIMIT=30
+Environment=VITAL_MARKET_RATE_WINDOW=60
+ExecStart=/usr/bin/uvicorn vital_market.app:app --host 127.0.0.1 --port 8080
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

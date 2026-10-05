@@ -1,0 +1,14 @@
+{
+  "id": "firefox",
+  "name": "Firefox",
+  "summary": "Web browser from Mozilla's apt archive.",
+  "description": "Firefox is already part of the Vital OS image, installed from packages.mozilla.org rather than a snap. Marketplace can reinstall it with apt if it has been removed. The icon in this catalog is an original Vital tile, not the Firefox logo.",
+  "icon_file": "icons/web.svg",
+  "version": "system",
+  "category": "Internet",
+  "publisher": "Mozilla",
+  "homepage": "https://www.mozilla.org/firefox/",
+  "license": "MPL-2.0",
+  "install": { "method": "apt", "package": "firefox" },
+  "min_os_version": "0.1.0"
+}

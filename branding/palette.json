@@ -1,33 +1,43 @@
 {
   "name": "Nocturne",
-  "description": "Deep graphite fields with a champagne-gold accent. Emerald is a secondary signal color, not a second brand.",
+  "description": "Deepened graphite fields with a single champagne accent. Ivory is the text color. Emerald is a signal, not a second brand.",
   "colors": {
-    "graphite-950": "#07080B",
-    "graphite-900": "#0E1116",
-    "graphite-800": "#161A21",
-    "graphite-700": "#1E242E",
-    "graphite-600": "#2C3442",
-    "ivory-50": "#F6F1E7",
-    "ivory-300": "#C9C2B4",
-    "ivory-500": "#8A8478",
-    "champagne-300": "#E4C992",
+    "graphite-1000": "#050608",
+    "graphite-950": "#08090C",
+    "graphite-900": "#0C0F14",
+    "graphite-850": "#12161C",
+    "graphite-800": "#171C24",
+    "graphite-700": "#1C232E",
+    "graphite-600": "#2A3140",
+    "ivory-50": "#F3EEE4",
+    "ivory-100": "#E7E0D2",
+    "ivory-300": "#C4BBAE",
+    "ivory-500": "#8C8578",
+    "champagne-200": "#E6D3A4",
+    "champagne-400": "#D4BC86",
     "champagne-500": "#C6A56A",
-    "champagne-700": "#8C7340",
-    "emerald-500": "#3E9B7A",
+    "champagne-700": "#8A7040",
+    "emerald-500": "#3C9A78",
     "danger-500": "#C45C4A"
   },
   "roles": {
-    "background": "graphite-950",
+    "background": "graphite-1000",
+    "letterbox": "graphite-950",
     "surface": "graphite-900",
     "panel": "graphite-800",
     "card": "graphite-700",
+    "hairline": "graphite-600",
     "text": "ivory-50",
     "text-muted": "ivory-300",
+    "text-faint": "ivory-500",
     "accent": "champagne-500",
-    "accent-highlight": "champagne-300",
+    "accent-highlight": "champagne-200",
+    "accent-soft": "champagne-400",
     "accent-pressed": "champagne-700",
     "success": "emerald-500",
-    "danger": "danger-500"
+    "danger": "danger-500",
+    "day-background": "ivory-50",
+    "day-text": "graphite-850"
   },
   "typography": {
     "ui": "Inter",
@@ -40,6 +50,7 @@
   "icon-theme": {
     "name": "Papirus-Dark",
     "package": "papirus-icon-theme",
-    "folder-tint": "palebrown"
+    "folder-tint": "palebrown",
+    "note": "palebrown is the Papirus folder tint nearest champagne. The mark itself is not recolored from a third-party palette."
   }
 }

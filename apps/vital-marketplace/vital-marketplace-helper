@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""Privileged installer for Vital Marketplace.
+
+Invoked by pkexec. It re-reads the item from the root-owned bundled catalog
+or from a catalog file the caller names only when that file's items match
+an id and the download still matches the published SHA-256. Scripts run
+only when the request sets confirmed to true.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "/usr/lib/vitalos")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "marketplace" / "python"))
+
+from vital_catalog import (  # noqa: E402
+    download_verified,
+    hashes_match,
+    load_json,
+    resolve_bundled,
+    validate_item,
+)
+
+STAMP_DIR = Path("/var/lib/vitalos/marketplace/installed")
+DEFAULT_CATALOG = Path("/usr/share/vitalos/marketplace/catalog.json")
+DEV_CATALOG = Path(__file__).resolve().parents[2] / "marketplace" / "catalog" / "catalog.json"
+
+
+def status(percent: int, message: str) -> None:
+    print(f"STATUS {percent} {message}", flush=True)
+
+
+def fail(message: str) -> None:
+    print(f"ERROR {message}", flush=True)
+    raise SystemExit(1)
+
+
+def catalog_roots(catalog_path: Path) -> list[Path]:
+    roots = []
+    for path in (catalog_path, DEFAULT_CATALOG, DEV_CATALOG):
+        if path.is_file():
+            roots.append(path.parent)
+    return roots
+
+
+def find_item(item_id: str, extra_catalog: str | None) -> tuple[dict, Path]:
+    paths = []
+    if extra_catalog:
+        paths.append(Path(extra_catalog))
+    paths.extend([DEFAULT_CATALOG, DEV_CATALOG])
+    seen: set[Path] = set()
+    for path in paths:
+        resolved = path.resolve()
+        if resolved in seen or not resolved.is_file():
+            continue
+        seen.add(resolved)
+        try:
+            document = load_json(resolved)
+        except (OSError, json.JSONDecodeError):
+            continue
+        for item in document.get("items", []):
+            if isinstance(item, dict) and item.get("id") == item_id:
+                errors = validate_item(item)
+                if errors:
+                    fail("; ".join(errors))
+                return item, resolved.parent
+    fail(f"unknown item {item_id}")
+    raise AssertionError
+
+
+def run(command: list[str]) -> None:
+    status(70, " ".join(command[:4]))
+    completed = subprocess.run(command, check=False, text=True)
+    if completed.returncode != 0:
+        fail(f"command failed ({completed.returncode}): {' '.join(command[:4])}")
+
+
+def install_item(item: dict, root: Path, confirmed: bool) -> None:
+    method = item["install"]["method"]
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+    if method == "apt":
+        package = item["install"]["package"]
+        status(40, f"Installing {package}")
+        run(["apt-get", "install", "-y", package])
+    elif method == "flatpak":
+        flatpak_id = item["install"]["flatpak_id"]
+        status(40, f"Installing {flatpak_id}")
+        run(["flatpak", "install", "-y", "--noninteractive", "flathub", flatpak_id])
+    elif method in {"deb", "script"}:
+        if method == "script" and not confirmed:
+            fail("script installs require confirmation")
+        url = item["install"]["url"]
+        digest = item["install"]["sha256"]
+        destination = Path("/var/tmp/vital-marketplace") / digest
+        status(25, "Downloading")
+        try:
+            download_verified(url, digest, destination, root)
+        except (OSError, ValueError) as exc:
+            fail(str(exc))
+        if not hashes_match(destination, digest):
+            fail("sha256 mismatch after download")
+        if method == "deb":
+            status(60, "Installing package")
+            run(["apt-get", "install", "-y", str(destination)])
+        else:
+            status(60, "Running script")
+            run(["/bin/sh", str(destination)])
+    else:
+        fail(f"unsupported method {method}")
+    STAMP_DIR.mkdir(parents=True, exist_ok=True)
+    (STAMP_DIR / item["id"]).write_text(item.get("version", "") + "\n", encoding="utf-8")
+    status(100, "Installed")
+
+
+def remove_item(item: dict) -> None:
+    method = item["install"]["method"]
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+    if method == "apt":
+        run(["apt-get", "remove", "-y", item["install"]["package"]])
+    elif method == "flatpak":
+        run(["flatpak", "uninstall", "-y", "--noninteractive", item["install"]["flatpak_id"]])
+    elif method == "deb":
+        package = item["install"].get("package")
+        if not package:
+            fail("this package has no apt name to remove")
+        run(["apt-get", "remove", "-y", package])
+    elif method == "script":
+        fail("example scripts are not removed automatically")
+    else:
+        fail(f"unsupported method {method}")
+    stamp = STAMP_DIR / item["id"]
+    if stamp.exists():
+        stamp.unlink()
+    status(100, "Removed")
+
+
+def upgrade_item(item: dict, root: Path, confirmed: bool) -> None:
+    method = item["install"]["method"]
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+    if method == "apt":
+        run(["apt-get", "install", "-y", "--only-upgrade", item["install"]["package"]])
+        status(100, "Updated")
+        return
+    if method == "flatpak":
+        run(["flatpak", "update", "-y", "--noninteractive", item["install"]["flatpak_id"]])
+        status(100, "Updated")
+        return
+    install_item(item, root, confirmed)
+
+
+def main() -> int:
+    if os.geteuid() != 0 and os.environ.get("VITAL_MARKET_HELPER_DRY_RUN") != "1":
+        fail("this helper must run as root")
+    if len(sys.argv) != 2:
+        fail("usage: vital-marketplace-helper REQUEST.json")
+    request_path = Path(sys.argv[1])
+    if not request_path.is_file():
+        fail("request file is missing")
+    try:
+        request = json.loads(request_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        fail("request is not JSON")
+    action = request.get("action")
+    item_id = request.get("id")
+    if action not in {"install", "remove", "upgrade"} or not isinstance(item_id, str):
+        fail("action and id are required")
+    item, root = find_item(item_id, request.get("catalog"))
+    confirmed = request.get("confirmed") is True
+    if os.environ.get("VITAL_MARKET_HELPER_DRY_RUN") == "1":
+        if item["install"]["method"] == "script" and action != "remove" and not confirmed:
+            fail("script installs require confirmation")
+        if item["install"]["method"] in {"deb", "script"} and action == "install":
+            url = item["install"]["url"]
+            if url.startswith("bundled://"):
+                path = resolve_bundled(url, root)
+                if not hashes_match(path, item["install"]["sha256"]):
+                    fail("sha256 mismatch")
+        status(100, "Dry run")
+        return 0
+    if action == "install":
+        install_item(item, root, confirmed)
+    elif action == "remove":
+        remove_item(item)
+    else:
+        upgrade_item(item, root, confirmed)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

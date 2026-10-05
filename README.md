@@ -11,7 +11,8 @@ The codename for this look is **Nocturne**. Color, type, and the mark are docume
 - GNOME Shell with dark mode by default, Papirus Dark icons (folders tinted pale brown), an original shell stylesheet, a bottom dock (Dash to Dock), Desktop Icons, and dconf defaults.
 - GDM login branding, a Plymouth boot splash, and a GRUB theme.
 - `/etc/os-release` and `/etc/lsb-release` identify the system as Vital OS 0.1.0. `ID_LIKE` stays `ubuntu debian` so Ubuntu-oriented packages still match. `VERSION_CODENAME` stays `noble` for the same reason. Settings → About reads `PRETTY_NAME`.
-- Vital Welcome, a GTK4 / libadwaita first-run app (welcome, appearance, curated apps, privacy and updates). It autostarts once per user, then writes `~/.config/vitalos/welcome-completed`.
+- Vital Welcome, a GTK4 / libadwaita first-run app (welcome, appearance, curated apps, privacy and updates). It autostarts once per user, then writes `~/.config/vitalos/welcome-completed`. The title is Vital OS and its version. “based on Ubuntu 24.04 LTS” is a secondary line.
+- Vital Marketplace, a GTK4 catalog browser in the app grid and on the Welcome apps page. It installs through a polkit helper, checks SHA-256 before running a downloaded package or script, and falls back to a bundled catalog. The publishing service is documented in [marketplace/README.md](marketplace/README.md).
 - Firefox from Mozilla's apt archive (not the Ubuntu transitional snap), Files, Console, Text Editor, Loupe, Evince, Celluloid, LibreOffice Writer and Calc, GNOME Software, and Flatpak with Flathub configured.
 - The package set is [config/packages.desktop.list](config/packages.desktop.list). Live-only packages are [config/packages.live.list](config/packages.live.list) and Calamares removes them on install.
 
@@ -114,6 +115,8 @@ Give the guest at least 3 GB of RAM. The GRUB menu offers Try, Install, and safe
 | `branding/` | Mark, palette, wallpapers, Plymouth, GRUB, shell CSS |
 | `overlay/` | Files copied verbatim into the rootfs |
 | `apps/vital-welcome/` | First-run app |
+| `apps/vital-marketplace/` | Catalog browser and privileged helper |
+| `marketplace/` | Catalog schema, sample catalog, API, CLI, and deploy files |
 | `docs/screenshots/` | Rendered previews |
 | `.github/workflows/build-iso.yml` | Check, build, release |
 
@@ -129,7 +132,7 @@ These are rendered from the SVG sources in `branding/`. They show the intended w
 
 ![Desktop](docs/screenshots/desktop.png)
 
-Vital Welcome, exported from the GTK4 app on a running display (welcome, appearance, curated apps, privacy):
+Vital Welcome, exported from the GTK4 app. Pages are a stack, so the next page is not visible beside the current one. The title line is Vital OS 0.1.0. "based on Ubuntu 24.04 LTS" is the line under it.
 
 ![Welcome](docs/screenshots/welcome.png)
 
@@ -138,6 +141,16 @@ Vital Welcome, exported from the GTK4 app on a running display (welcome, appeara
 ![Apps](docs/screenshots/welcome-apps.png)
 
 ![Privacy](docs/screenshots/welcome-privacy.png)
+
+Vital Marketplace, exported from the GTK4 app against the bundled catalog:
+
+![Marketplace](docs/screenshots/marketplace.png)
+
+![Marketplace detail](docs/screenshots/marketplace-detail.png)
+
+Day wallpaper:
+
+![Day wallpaper](docs/screenshots/wallpaper-day.png)
 
 Real frames from QEMU (TCG, because KVM was not usable on the build host). BIOS and UEFI both reached the GRUB theme. The splash and the text console are from the live initrd:
 
@@ -158,7 +171,10 @@ On an Ubuntu 24.04 host:
 - QEMU with KVM exited with "Permission denied" for this user. Running it as root hit a host KVM fault, so the boot tests used TCG.
 - BIOS and UEFI (OVMF pflash) both showed the Vital OS GRUB menu: Try, Install, and safe graphics. See `docs/screenshots/qemu-grub-bios.png` and `docs/screenshots/qemu-uefi.png`.
 - A direct kernel boot of that ISO, with the same `boot=casper quiet` arguments as the GRUB entry, passed the overlay mount, started GNOME Display Manager, and started the live user session (`user@1000`). The framebuffer stayed on the Plymouth splash (`docs/screenshots/qemu-plymouth.png`) for the few minutes TCG was left running, so there is no photograph of the GNOME desktop from the guest. tty2 showed `Vital OS 0.1.0 vitalos` and a login prompt (`docs/screenshots/qemu-console.png`).
-- Calamares was not clicked through an install. Plymouth logged a missing `label-pango.so` plugin; the logo is a pixmap and still appeared. `xorriso` warns that `/EFI/BOOT` is not also copied into the ISO tree; the EFI boot image is the appended FAT partition. Secure Boot was not tested and is not supported.
+- Calamares was not clicked through an install. Plymouth logged a missing `label-pango.so` plugin; the logo is a pixmap and still appeared. The ISO tree now also contains `/EFI/BOOT/BOOTX64.EFI` in addition to the appended FAT image. Secure Boot was not tested and is not supported.
+- Welcome no longer uses a carousel. GTK exports of the four pages show one page at a time, and the product line is `Vital OS 0.1.0` with `based on Ubuntu 24.04 LTS` underneath, including when `/etc/os-release` on the machine running the app is Ubuntu.
+- Marketplace unit tests cover authentication (401 without a token), schema rejection (422), ed25519 catalog signatures, ETag 304 responses, and the admin rate limit. The example script helper refuses to run without confirmation and accepts a dry run when the SHA-256 matches.
+- The ISO in `build/output/` is the previous 0.1.0 image. It does not yet contain the Marketplace app or the Welcome fixes. A rebuild is still required before those pieces are on the live desktop.
 
 ## Trademarks and licenses
 
