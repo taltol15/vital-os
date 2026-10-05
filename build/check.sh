@@ -23,6 +23,9 @@ required=(
     config/grub.cfg
     config/flathub.flatpakrepo
     config/calamares/settings.conf
+    config/calamares/modules/mount.conf
+    config/calamares/modules/welcome.conf
+    config/calamares/runtime/mount/main.py
     config/calamares/branding/vitalos/branding.desc
     config/calamares/branding/vitalos/show.qml
     branding/logo/vital-symbol.svg
@@ -66,6 +69,28 @@ if ! grep -q 'export FLAVOUR=' overlay/etc/casper.conf; then
     bad "casper.conf must set FLAVOUR or the live username is rewritten"
 fi
 
+if ! grep -q 'requiredStorage: 16.0' config/calamares/modules/welcome.conf; then
+    bad "welcome.conf requiredStorage must be the decimal 16.0 so Calamares does not ignore it"
+fi
+if ! grep -q 'requiredRam: 2.0' config/calamares/modules/welcome.conf; then
+    bad "welcome.conf requiredRam must be the decimal 2.0 so Calamares does not ignore it"
+fi
+if ! grep -q 'class MountError' config/calamares/runtime/mount/main.py; then
+    bad "Calamares mount module must refuse to continue when the target disk is not mounted"
+fi
+if ! grep -q 'shellprocess@vital-target' config/calamares/settings.conf; then
+    bad "settings.conf must run the target-disk check before unpackfs"
+fi
+if ! grep -q 'Package: grub-efi-amd64-signed' config/apt-preferences; then
+    bad "apt pin must keep Ubuntu's signed GRUB out of the image"
+fi
+if grep -q '^eject$' config/packages.live.list config/calamares/modules/packages.conf; then
+    bad "eject must stay installed; nautilus depends on it"
+fi
+if ! grep -q '^0.1.1$' VERSION; then
+    bad "VERSION is not 0.1.1"
+fi
+
 while IFS= read -r pkg; do
     case "$pkg" in
         ubuntu-desktop|ubuntu-desktop-minimal|ubuntu-session|snapd|yaru-*|nvidia-*)
@@ -82,6 +107,8 @@ scripts=(
     build/package-release.sh
     tools/qemu-boot.sh
     overlay/usr/libexec/vitalos-maybe-install
+    overlay/usr/libexec/vitalos-install-check
+    overlay/usr/libexec/vitalos-install-bootloader
     overlay/etc/grub.d/06_vital_font
     overlay/usr/share/initramfs-tools/scripts/casper-bottom/26vitalos_desktop
 )
@@ -105,7 +132,8 @@ python3 -m py_compile \
     apps/vital-telemetry/vital-telemetry \
     apps/vital-telemetry/vital-telemetry-ctl \
     apps/vital-telemetry/vital_telemetry.py \
-    tools/render_previews.py
+    tools/render_previews.py \
+    config/calamares/runtime/mount/main.py
 
 note "checking catalog.json"
 python3 marketplace/tools/build_catalog.py --check || bad "catalog.json does not match sources"

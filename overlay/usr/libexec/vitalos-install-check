@@ -1,0 +1,68 @@
+#!/bin/sh
+# Refuse to unpack when the target cannot hold the live system.
+# Calamares reports that failure only as "rsync failed with error code 11".
+set -eu
+
+root="${1:-}"
+sizefile="${2:-}"
+
+if [ -z "$root" ]; then
+    echo "Vital OS install check was not given the target directory." >&2
+    exit 1
+fi
+
+if [ -z "$sizefile" ]; then
+    for candidate in /cdrom/casper/filesystem.size /run/live/medium/casper/filesystem.size; do
+        if [ -f "$candidate" ]; then
+            sizefile=$candidate
+            break
+        fi
+    done
+fi
+
+if [ -z "$sizefile" ] || [ ! -f "$sizefile" ]; then
+    echo "Vital OS cannot find casper/filesystem.size on the live medium." >&2
+    exit 1
+fi
+
+need=$(tr -d '[:space:]' < "$sizefile")
+case "$need" in
+    ''|*[!0-9]*)
+        echo "Vital OS cannot read the image size from ${sizefile}." >&2
+        exit 1
+        ;;
+esac
+# Image size, plus 20% for ext4 metadata and the initramfs rebuild, plus 256 MiB.
+want=$(( need + need / 5 + 256 * 1024 * 1024 ))
+
+fstype=$(findmnt -n -o FSTYPE -T "$root" 2>/dev/null || true)
+if ! findmnt -n "$root" >/dev/null 2>&1; then
+    fstype=""
+fi
+
+case "$fstype" in
+    ext4|btrfs|xfs|f2fs)
+        ;;
+    *)
+        echo "Vital OS did not mount a root filesystem at ${root} (type: ${fstype:-not a mount})." >&2
+        echo "Unpacking now would copy the system into the live session. That copy fills the memory disk and rsync exits 11." >&2
+        echo "Choose Erase disk on a virtual disk of at least 16 GiB. If the hypervisor counts decimal gigabytes, use 18 GB or more." >&2
+        exit 1
+        ;;
+esac
+
+avail=$(df -B1 --output=avail "$root" | awk 'NR==2 { print $1 }')
+case "$avail" in
+    ''|*[!0-9]*)
+        echo "Vital OS cannot read free space on ${root}." >&2
+        exit 1
+        ;;
+esac
+
+if [ "$avail" -lt "$want" ]; then
+    echo "The target filesystem has ${avail} bytes free. Vital OS needs ${want} bytes (${need} for the image, plus headroom)." >&2
+    echo "Use a disk of at least 16 GiB (18 GB when the size is decimal). A smaller root is rejected here so rsync does not fail with error 11." >&2
+    exit 1
+fi
+
+exit 0

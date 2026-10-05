@@ -1,16 +1,16 @@
 # Vital OS
 
-Vital OS 0.1.0 is a personal desktop image based on Ubuntu 24.04 LTS (noble). The interface is GNOME, the palette is graphite and champagne, and the artwork is original. It is not a Canonical product, not an NVIDIA product, and it does not reuse those companies' logos, wallpapers, or themes.
+Vital OS 0.1.1 is a personal desktop image based on Ubuntu 24.04 LTS (noble). The interface is GNOME, the palette is graphite and champagne, and the artwork is original. It is not a Canonical product, not an NVIDIA product, and it does not reuse those companies' logos, wallpapers, or themes.
 
 The codename for this look is **Nocturne**. Color, type, and the mark are documented in [branding/README.md](branding/README.md).
 
 ## What you get
 
-- A hybrid live and install ISO for BIOS and UEFI. Secure Boot is not part of 0.1.0; turn it off to boot.
+- A hybrid live and install ISO for BIOS and UEFI. Secure Boot is not supported; turn it off to boot. The installer needs a disk of at least 16 GiB. Set a hypervisor disk to 18 GB or more when that field counts decimal gigabytes. A smaller disk, or a root partition that is not actually mounted, is rejected before the copy. The old failure was `rsync failed with error code 11`.
 - Calamares as the installer. Ubuntu's desktop installer (`ubuntu-desktop-bootstrap`) is a snap tied to Ubuntu's own session and branding, and the server-side Subiquity UI is not a desktop installer. Calamares is the practical choice for a small derivative: it is packaged in Ubuntu 24.04 universe, it runs offline, and its branding files are plain text.
 - GNOME Shell with dark mode by default, Papirus Dark icons (folders tinted pale brown), an original shell stylesheet, a bottom dock (Dash to Dock), Desktop Icons, and dconf defaults.
 - GDM login branding, a Plymouth boot splash, and a GRUB theme.
-- `/etc/os-release` and `/etc/lsb-release` identify the system as Vital OS 0.1.0. `ID_LIKE` stays `ubuntu debian` so Ubuntu-oriented packages still match. `VERSION_CODENAME` stays `noble` for the same reason. Settings → About reads `PRETTY_NAME`.
+- `/etc/os-release` and `/etc/lsb-release` identify the system as Vital OS 0.1.1. `ID_LIKE` stays `ubuntu debian` so Ubuntu-oriented packages still match. `VERSION_CODENAME` stays `noble` for the same reason. Settings → About reads `PRETTY_NAME`.
 - Vital Welcome, a GTK4 / libadwaita first-run app (welcome, appearance, curated apps, privacy and updates). It autostarts once per user, then writes `~/.config/vitalos/welcome-completed`. The title is Vital OS and its version. “based on Ubuntu 24.04 LTS” is a secondary line.
 - Vital Marketplace, a GTK4 catalog browser in the app grid and on the Welcome apps page. It installs through a polkit helper, checks SHA-256 before running a downloaded package or script, and falls back to a bundled catalog. The publishing service is documented in [marketplace/README.md](marketplace/README.md).
 - Firefox from Mozilla's apt archive (not the Ubuntu transitional snap), Files, Console, Text Editor, Loupe, Evince, Celluloid, LibreOffice Writer and Calc, GNOME Software, and Flatpak with Flathub configured.
@@ -36,7 +36,7 @@ sudo ./build.sh iso
 sudo make iso
 ```
 
-The image is written to `build/output/VitalOS-0.1.0-amd64.iso`. Build trees live under `build/work/` and are gitignored. Nothing in this repository is a built ISO.
+The image is written to `build/output/VitalOS-0.1.1-amd64.iso`. Build trees live under `build/work/` and are gitignored. Nothing in this repository is a built ISO.
 
 Useful environment variables:
 
@@ -75,7 +75,7 @@ This is the same shape as a live-build / livecd-rootfs image (debootstrap, squas
 The ISO is split with `split -b 1900M` when it is larger than 1900 MiB, so each GitHub release asset stays under the 2 GiB limit. `SHA256SUMS` and `README-download.txt` sit next to the parts. Reassemble with:
 
 ```bash
-cat VitalOS-0.1.0-amd64.iso.part* > VitalOS-0.1.0-amd64.iso
+cat VitalOS-0.1.1-amd64.iso.part* > VitalOS-0.1.1-amd64.iso
 sha256sum -c SHA256SUMS
 ```
 
@@ -95,7 +95,7 @@ tools/qemu-boot.sh uefi
 Or by hand:
 
 ```bash
-qemu-system-x86_64 -m 3072 -smp 2 -cdrom build/output/VitalOS-0.1.0-amd64.iso \
+qemu-system-x86_64 -m 3072 -smp 2 -cdrom build/output/VitalOS-0.1.1-amd64.iso \
   -boot d -vga virtio -enable-kvm -cpu host
 ```
 

@@ -7,5 +7,5 @@ qml-module-qtquick2
 qml-module-qtquick-window2
 qml-module-qtgraphicaleffects
 squashfs-tools
-eject
+# eject is a dependency of nautilus. Removing it deletes Files and desktop icons.
 libqt5svg5

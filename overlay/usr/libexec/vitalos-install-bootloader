@@ -1,0 +1,45 @@
+#!/bin/sh
+# Install the GRUB target the firmware we are not booted in still needs,
+# and the removable EFI path ESXi uses when NVRAM entries are ignored.
+# The secondary target is allowed to fail. The target for this boot mode is not.
+set -u
+
+efi=0
+if [ -d /sys/firmware/efi ]; then
+    efi=1
+fi
+
+disk=""
+if [ -d /boot/efi ]; then
+    disk=$(grub-probe -t disk /boot/efi 2>/dev/null || true)
+fi
+if [ -z "$disk" ]; then
+    disk=$(grub-probe -t disk / 2>/dev/null || true)
+fi
+
+if [ -d /boot/efi ]; then
+    if ! grub-install --target=x86_64-efi --efi-directory=/boot/efi \
+        --bootloader-id=vitalos --removable --no-nvram; then
+        echo "Vital OS: EFI GRUB was not installed." >&2
+        if [ "$efi" -eq 1 ]; then
+            exit 1
+        fi
+    fi
+elif [ "$efi" -eq 1 ]; then
+    echo "Vital OS: this machine booted with EFI, but /boot/efi is not mounted." >&2
+    exit 1
+fi
+
+if [ -n "$disk" ]; then
+    if ! grub-install --target=i386-pc "$disk"; then
+        echo "Vital OS: BIOS GRUB was not installed on ${disk}." >&2
+        if [ "$efi" -eq 0 ]; then
+            exit 1
+        fi
+    fi
+elif [ "$efi" -eq 0 ]; then
+    echo "Vital OS: could not find the disk for BIOS GRUB." >&2
+    exit 1
+fi
+
+exit 0

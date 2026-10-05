@@ -148,6 +148,19 @@ DISTRIB_DESCRIPTION="Vital OS ${VERSION}"
 EOF
 }
 
+install_calamares_mount_fix() {
+    local root="$1"
+    local mod ver
+    ver="$(dpkg-query --root="$root" -W -f '${Version}' calamares 2>/dev/null || true)"
+    if [[ "$ver" != "3.3.5-0ubuntu4" ]]; then
+        die "Calamares mount fix is written for 3.3.5-0ubuntu4 (found ${ver:-nothing})"
+    fi
+    mod="$(find "$root/usr/lib" -path '*/calamares/modules/mount/main.py' -print -quit)"
+    [[ -n "$mod" ]] || die "Calamares mount/main.py was not installed"
+    install -m 0644 "${VITAL_ROOT_DIR}/config/calamares/runtime/mount/main.py" "$mod"
+    log "Installed the Vital OS mount module over Calamares ${ver}"
+}
+
 install_brand_assets() {
     local root="$1"
     local brand="$2"
@@ -420,6 +433,7 @@ build_iso() {
     # does not exist there.
     chroot "$ROOTFS" /usr/bin/env -u SUDO_USER -u SUDO_UID -u SUDO_GID -u PKEXEC_UID \
         /bin/bash /tmp/vital-build/configure-system.sh
+    install_calamares_mount_fix "$ROOTFS"
     umount_chroot "$ROOTFS"
     MOUNTED=0
 
