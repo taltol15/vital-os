@@ -1,0 +1,31 @@
+# Image build tree and outputs. Never commit ISOs.
+/build/work/
+/build/output/
+/build/cache/
+*.iso
+*.iso.*
+*.squashfs
+*.img
+*.part
+*.deb
+SHA256SUMS
+
+# Local test logs
+*.log
+*.ppm
+serial.log
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Marketplace server state and secrets. Never commit tokens or private keys.
+*.db
+*.key
+marketplace/server/data/
+marketplace/data/
+
+# Editor
+.DS_Store
+*~

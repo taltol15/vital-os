@@ -1,0 +1,133 @@
+# Vital OS desktop package set. One package name per line.
+# Lines starting with # are comments. Keep this list easy to edit.
+# Do not add ubuntu-desktop, ubuntu-session, yaru-*, or snapd.
+
+# Base system
+sudo
+adduser
+user-setup
+locales
+keyboard-configuration
+console-setup
+tzdata
+ca-certificates
+curl
+wget
+gnupg
+apt-utils
+netplan.io
+nano
+less
+unzip
+bash-completion
+htop
+dbus
+systemd
+systemd-sysv
+systemd-resolved
+polkitd
+dconf-cli
+libglib2.0-bin
+
+# Kernel and firmware
+linux-image-generic
+linux-firmware
+initramfs-tools
+
+# Networking, power, firmware updates
+network-manager
+network-manager-gnome
+bluez
+gnome-bluetooth
+power-profiles-daemon
+switcheroo-control
+fwupd
+pciutils
+usbutils
+ubuntu-drivers-common
+
+# Boot splash and bootloader bits used by the installed system
+plymouth
+grub-common
+grub2-common
+grub-pc-bin
+grub-efi-amd64-bin
+efibootmgr
+os-prober
+cryptsetup
+keyutils
+lvm2
+parted
+dosfstools
+e2fsprogs
+btrfs-progs
+xfsprogs
+rsync
+
+# GNOME desktop
+gnome-session
+gnome-session-bin
+gnome-shell
+gdm3
+gnome-control-center
+gnome-settings-daemon
+gnome-keyring
+libpam-gnome-keyring
+gnome-menus
+xdg-user-dirs
+xdg-utils
+xdg-desktop-portal
+xdg-desktop-portal-gnome
+xdg-desktop-portal-gtk
+
+# Curated applications
+nautilus
+gnome-console
+gnome-text-editor
+loupe
+evince
+celluloid
+gnome-calculator
+gnome-system-monitor
+gnome-disk-utility
+file-roller
+gnome-software
+gnome-software-plugin-flatpak
+flatpak
+libreoffice-writer
+libreoffice-calc
+libreoffice-gtk3
+
+# Media and graphics stack
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+gstreamer1.0-plugins-base
+gstreamer1.0-plugins-good
+gstreamer1.0-libav
+mesa-vulkan-drivers
+alsa-utils
+
+# Appearance
+fonts-inter
+fonts-inter-variable
+fonts-ibm-plex
+fonts-noto-core
+papirus-icon-theme
+adwaita-icon-theme
+hicolor-icon-theme
+gnome-themes-extra
+gnome-shell-extensions
+gnome-shell-extension-desktop-icons-ng
+libgtk-3-bin
+
+# Vital Welcome
+python3
+python3-gi
+python3-cryptography
+gir1.2-gtk-4.0
+gir1.2-adw-1
+
+# Updates
+unattended-upgrades

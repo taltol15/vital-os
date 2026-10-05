@@ -1,0 +1,333 @@
+/* Vital OS shell chrome. Original selectors styling for GNOME 46.
+   Unknown selectors are ignored, so this file stays safe across point releases. */
+
+stage {
+  font-family: Inter, sans-serif;
+  color: #f3eee4;
+  background-color: #0c0f14;
+}
+
+#panel {
+  background-color: rgba(12, 15, 20, 0.92);
+  height: 2.35em;
+  font-weight: 500;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(198, 165, 106, 0.18);
+}
+
+#panel.unlock-screen,
+#panel.login-screen,
+#panel.lock-screen {
+  background-color: transparent;
+  border-bottom: none;
+}
+
+#panel .panel-button {
+  color: #f3eee4;
+  border-radius: 10px;
+  padding: 0 8px;
+}
+
+#panel .panel-button:hover,
+#panel .panel-button:focus {
+  background-color: rgba(198, 165, 106, 0.16);
+  color: #f3eee4;
+}
+
+#panel .panel-button:active,
+#panel .panel-button:overview,
+#panel .panel-button:checked {
+  background-color: rgba(198, 165, 106, 0.28);
+  color: #e6d3a4;
+}
+
+#panel .clock-display {
+  color: #f3eee4;
+}
+
+.popup-menu-boxpointer,
+.candidate-popup-boxpointer {
+  -arrow-background-color: #181e27;
+  -arrow-border-color: rgba(198, 165, 106, 0.35);
+  -arrow-border-width: 1px;
+  -arrow-border-radius: 16px;
+  -arrow-rise: 8px;
+}
+
+.popup-menu {
+  color: #f3eee4;
+  min-width: 15em;
+}
+
+.popup-menu-content {
+  padding: 6px;
+  background-color: #181e27;
+  border-radius: 16px;
+  border: 1px solid rgba(198, 165, 106, 0.22);
+}
+
+.popup-menu-item {
+  spacing: 8px;
+  border-radius: 10px;
+  padding: 8px;
+  color: #f3eee4;
+}
+
+.popup-menu-item:hover,
+.popup-menu-item:active,
+.popup-menu-item:focus,
+.popup-menu-item.selected {
+  background-color: rgba(198, 165, 106, 0.18);
+  color: #f3eee4;
+}
+
+.popup-menu-item:checked {
+  color: #e6d3a4;
+}
+
+.popup-separator-menu-item {
+  background-color: transparent;
+}
+
+.popup-separator-menu-item .popup-separator-menu-item-separator {
+  height: 1px;
+  margin: 6px 8px;
+  background-color: rgba(243, 238, 228, 0.08);
+}
+
+.slider {
+  color: #c6a56a;
+  height: 4px;
+  -barlevel-height: 4px;
+  -barlevel-background-color: rgba(243, 238, 228, 0.16);
+  -barlevel-active-background-color: #c6a56a;
+  -slider-handle-radius: 7px;
+}
+
+.toggle-switch {
+  color: #c6a56a;
+  width: 44px;
+  height: 24px;
+}
+
+.search-entry {
+  width: 360px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #f3eee4;
+  background-color: rgba(12, 15, 20, 0.78);
+  border: 1px solid rgba(198, 165, 106, 0.45);
+  caret-color: #c6a56a;
+  selection-background-color: #c6a56a;
+  selected-color: #14110c;
+}
+
+.search-entry:focus {
+  border-color: #e6d3a4;
+  background-color: rgba(12, 15, 20, 0.92);
+}
+
+#dash,
+.dash-background {
+  background-color: rgba(12, 15, 20, 0.72);
+  border: 1px solid rgba(198, 165, 106, 0.28);
+  border-radius: 18px;
+  padding: 6px;
+}
+
+.overview-icon {
+  border-radius: 14px;
+  padding: 4px;
+  color: #f3eee4;
+}
+
+.app-well-app:hover .overview-icon,
+.app-well-app:focus .overview-icon,
+.show-apps:hover .overview-icon {
+  background-color: rgba(198, 165, 106, 0.16);
+}
+
+.app-well-app-running-dot {
+  background-color: #c6a56a;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.workspace-thumbnail,
+.workspace-thumbnail-indicator {
+  border-radius: 10px;
+}
+
+.workspace-thumbnail {
+  border: 2px solid transparent;
+}
+
+.workspace-thumbnail.active,
+.workspace-thumbnail:selected {
+  border-color: #c6a56a;
+}
+
+.osd-window,
+.resize-popup,
+.switcher-popup {
+  color: #f3eee4;
+  background-color: rgba(12, 15, 20, 0.92);
+  border: 1px solid rgba(198, 165, 106, 0.32);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.switcher-list-item-container {
+  spacing: 8px;
+}
+
+.switcher-list .item-box:selected {
+  background-color: rgba(198, 165, 106, 0.22);
+  border-radius: 12px;
+}
+
+.modal-dialog {
+  background-color: #141820;
+  border: 1px solid rgba(198, 165, 106, 0.28);
+  border-radius: 22px;
+  color: #f3eee4;
+}
+
+.modal-dialog .modal-dialog-content-box {
+  padding: 24px;
+  spacing: 16px;
+}
+
+.modal-dialog .button,
+.prompt-dialog-button {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background-color: #1c232e;
+  color: #f3eee4;
+  border: 1px solid rgba(243, 238, 228, 0.08);
+}
+
+.modal-dialog .button:hover,
+.prompt-dialog-button:hover {
+  background-color: rgba(198, 165, 106, 0.18);
+}
+
+.modal-dialog .button.default,
+.prompt-dialog-button.default {
+  background-color: #c6a56a;
+  color: #14110c;
+  border-color: transparent;
+}
+
+#lockDialogGroup {
+  background-color: #050608;
+  background-image: url("lock-background.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.login-dialog-banner,
+.login-dialog-banner-view {
+  color: #e6d3a4;
+  font-weight: 500;
+  padding-bottom: 12px;
+}
+
+.login-dialog,
+.unlock-dialog {
+  background-color: rgba(12, 15, 20, 0.82);
+  border: 1px solid rgba(198, 165, 106, 0.32);
+  border-radius: 24px;
+  padding: 8px;
+}
+
+.login-dialog-prompt-entry,
+.unlock-dialog-prompt-entry {
+  color: #f3eee4;
+  background-color: rgba(7, 8, 11, 0.55);
+  border: 1px solid rgba(198, 165, 106, 0.55);
+  border-radius: 12px;
+  padding: 8px 12px;
+  caret-color: #c6a56a;
+}
+
+.login-dialog-user-list-item:hover,
+.login-dialog-user-list-item:focus,
+.login-dialog-user-list-item:selected {
+  background-color: rgba(198, 165, 106, 0.16);
+  border-radius: 12px;
+}
+
+.quick-settings {
+  background-color: #141820;
+  border-radius: 22px;
+  padding: 12px;
+  border: 1px solid rgba(198, 165, 106, 0.22);
+  color: #f3eee4;
+}
+
+.quick-toggle,
+.quick-toggle-has-menu {
+  background-color: #1c232e;
+  border-radius: 14px;
+  color: #f3eee4;
+  padding: 10px;
+}
+
+.quick-toggle:checked,
+.quick-toggle:checked:hover {
+  background-color: #c6a56a;
+  color: #14110c;
+}
+
+.quick-slider {
+  padding: 0 4px;
+}
+
+.calendar {
+  padding: 8px;
+  color: #f3eee4;
+}
+
+.calendar-day-base.day {
+  border-radius: 999px;
+}
+
+.calendar-today,
+.calendar-day-base.today {
+  background-color: rgba(198, 165, 106, 0.22);
+  color: #e6d3a4;
+}
+
+.calendar-day-base:selected,
+.calendar-day-base:active {
+  background-color: #c6a56a;
+  color: #14110c;
+}
+
+.message,
+.notification-banner {
+  background-color: #181e27;
+  border: 1px solid rgba(198, 165, 106, 0.22);
+  border-radius: 16px;
+  color: #f3eee4;
+  padding: 10px;
+}
+
+.message-title {
+  font-weight: 600;
+  color: #f3eee4;
+}
+
+.page-indicator .page-indicator-icon {
+  color: rgba(243, 238, 228, 0.35);
+}
+
+.page-indicator .page-indicator-icon.active {
+  color: #c6a56a;
+}
+
+StEntry, StButton, StLabel {
+  color: #f3eee4;
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/taltol15/vital-os/marketplace/schema/catalog-item.schema.json",
+  "title": "Vital Marketplace item",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "summary",
+    "description",
+    "icon",
+    "version",
+    "category",
+    "publisher",
+    "homepage",
+    "license",
+    "install",
+    "min_os_version"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{1,80}$"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 8000 },
+    "icon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "sha256"],
+      "properties": {
+        "url": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "category": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "publisher": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "homepage": { "type": "string", "minLength": 1 },
+    "license": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": { "enum": ["apt", "flatpak", "deb", "script"] },
+        "package": { "type": "string" },
+        "flatpak_id": { "type": "string" },
+        "url": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "method": { "const": "apt" } },
+            "required": ["method"]
+          },
+          "then": { "required": ["package"] }
+        },
+        {
+          "if": {
+            "properties": { "method": { "const": "flatpak" } },
+            "required": ["method"]
+          },
+          "then": { "required": ["flatpak_id"] }
+        },
+        {
+          "if": {
+            "properties": { "method": { "const": "deb" } },
+            "required": ["method"]
+          },
+          "then": { "required": ["url", "sha256"] }
+        },
+        {
+          "if": {
+            "properties": { "method": { "const": "script" } },
+            "required": ["method"]
+          },
+          "then": { "required": ["url", "sha256"] }
+        }
+      ]
+    },
+    "screenshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "sha256"],
+        "properties": {
+          "url": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "min_os_version": { "type": "string", "minLength": 1 },
+    "example": { "type": "boolean" },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of the canonical item JSON with checksum and signature removed."
+    },
+    "signature": {
+      "type": "string",
+      "description": "Optional ed25519 signature of the canonical item, standard base64."
+    }
+  }
+}

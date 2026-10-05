@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Vital OS
+Description=Vital OS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/vitalos
+ScriptFile=/usr/share/plymouth/themes/vitalos/vitalos.script

@@ -1,0 +1,36 @@
+# Vital OS GRUB theme. Font file inter.pf2 is generated at image-build time
+# from the OFL Inter package and placed next to this file.
+desktop-image: "background.png"
+desktop-color: "#050608"
+title-text: ""
+title-color: "#C6A56A"
+title-font: "Inter 16"
+message-font: "Inter 16"
+message-color: "#C4BBAE"
+terminal-font: "Inter 16"
+
++ boot_menu {
+  left = 18%
+  top = 30%
+  width = 64%
+  height = 42%
+  item_font = "Inter 16"
+  item_color = "#F3EEE4"
+  selected_item_color = "#E6D3A4"
+  item_height = 36
+  item_padding = 12
+  item_spacing = 6
+  icon_width = 0
+  icon_height = 0
+  item_icon_space = 0
+}
+
++ label {
+  left = 18%
+  top = 86%
+  width = 64%
+  align = "left"
+  font = "Inter 16"
+  color = "#8C8578"
+  text = "Vital OS 0.1.0    ·    arrows to choose, Enter to start"
+}

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Load the Vital OS GRUB font before the theme paints menu entries.
+set -e
+echo "insmod png"
+echo "insmod jpeg"
+echo "insmod gfxterm"
+if [ -f /usr/share/grub/themes/vital/inter.pf2 ]; then
+    echo "if loadfont /usr/share/grub/themes/vital/inter.pf2 ; then true; fi"
+fi

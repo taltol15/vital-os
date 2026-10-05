@@ -1,0 +1,1 @@
+"""Vital Marketplace catalog service."""

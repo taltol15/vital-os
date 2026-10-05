@@ -1,0 +1,12 @@
+[Unit]
+Description=Send the Vital OS install ping after first boot
+ConditionKernelCommandLine=!boot=casper
+
+[Timer]
+OnBootSec=15min
+AccuracySec=1min
+Persistent=true
+Unit=vital-telemetry.service
+
+[Install]
+WantedBy=timers.target

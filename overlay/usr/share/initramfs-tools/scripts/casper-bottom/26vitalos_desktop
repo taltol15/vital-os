@@ -1,0 +1,33 @@
+#!/bin/sh
+# Place the Vital OS installer on the live user's desktop.
+
+PREREQ=""
+DESCRIPTION="Adding the Vital OS installer to the desktop..."
+
+prereqs()
+{
+    echo "$PREREQ"
+}
+
+case $1 in
+    prereqs)
+        prereqs
+        exit 0
+        ;;
+esac
+
+# shellcheck disable=SC1091
+. /scripts/casper-functions
+
+log_begin_msg "$DESCRIPTION"
+
+DESKTOP_FILE=/usr/share/applications/vitalos-install.desktop
+if [ -f "/root${DESKTOP_FILE}" ]; then
+    chroot /root install -d -o "$USERNAME" -g "$USERNAME" "/home/$USERNAME/Desktop"
+    chroot /root install -o "$USERNAME" -g "$USERNAME" \
+        "$DESKTOP_FILE" "/home/$USERNAME/Desktop/vitalos-install.desktop"
+    # Do not start a user dbus session here. The initramfs chroot often
+    # cannot open /dev/null, and a login shell would source flatpak.sh and fail.
+fi
+
+log_end_msg

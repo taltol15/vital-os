@@ -1,0 +1,34 @@
+# Example only. DNS for vital-os.org must point at this host first.
+#
+#   A     vital-os.org   ->  the server's IPv4 address
+#   AAAA  vital-os.org   ->  the server's IPv6 address
+# A CNAME works for a name that is not the zone apex. The apex itself
+# should be an A and/or AAAA record. www is optional and only redirects.
+#
+# Open TCP 80 and 443. Leave 8080 on localhost. Then:
+#   caddy run --config Caddyfile.example
+# Caddy obtains a certificate from Let's Encrypt and proxies to the
+# catalog. Access logs are discarded so client addresses are not kept.
+# The image reads:
+#   catalog_url=https://vital-os.org/api/v1/catalog
+#   public key /etc/vital/marketplace.pub
+# Publish the ISO link as https://vital-os.org/api/v1/downloads/iso
+# and set VITAL_ISO_URL to the file that endpoint should redirect to.
+vital-os.org {
+	log {
+		output discard
+	}
+	handle /releases/* {
+		root * /var/lib/vital-market
+		file_server
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8080
+	}
+}
+
+# Uncomment after www.vital-os.org has a DNS record. Caddy will not finish
+# certificate issuance for a name that does not resolve.
+# www.vital-os.org {
+# 	redir https://vital-os.org{uri} permanent
+# }

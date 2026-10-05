@@ -1,0 +1,24 @@
+# Catalog service for https://vital-os.org. TLS belongs in front of this
+# process. See Caddyfile.example. Do not publish port 8080 on a public
+# interface. The signing key is a file mount, never an image layer.
+services:
+  market:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    environment:
+      VITAL_MARKET_DB: /data/market.db
+      VITAL_MARKET_DATA: /data
+      VITAL_MARKET_SIGNING_KEY_FILE: /run/secrets/market.key
+      VITAL_MARKET_RATE_LIMIT: "30"
+      VITAL_MARKET_RATE_WINDOW: "60"
+      VITAL_PUBLIC_BASE: https://vital-os.org
+    volumes:
+      - market-data:/data
+      - ${VITAL_MARKET_KEY_FILE:-./market.key}:/run/secrets/market.key:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+
+volumes:
+  market-data:

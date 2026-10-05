@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Turn the anonymous Vital OS install count on or off."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+for extra in (Path("/usr/lib/vitalos"), Path(__file__).resolve().parent):
+    if extra.is_dir() and str(extra) not in sys.path:
+        sys.path.insert(0, str(extra))
+
+from vital_telemetry import configure_main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(configure_main())

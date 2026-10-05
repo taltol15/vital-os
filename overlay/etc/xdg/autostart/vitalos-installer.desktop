@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Vital OS Installer
+Comment=Starts Calamares when the Install boot entry was chosen
+Exec=/usr/libexec/vitalos-maybe-install
+Icon=vitalos
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Phase=Application
+OnlyShowIn=GNOME;

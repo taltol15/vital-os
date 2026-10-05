@@ -1,0 +1,12 @@
+[Unit]
+Description=Vital OS anonymous weekly check-in
+After=network-online.target
+Wants=network-online.target
+ConditionKernelCommandLine=!boot=casper
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vital-telemetry heartbeat
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true

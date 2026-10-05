@@ -1,0 +1,14 @@
+{
+  "id": "inkscape",
+  "name": "Inkscape",
+  "summary": "Vector drawing, installed from Flathub.",
+  "description": "Inkscape edits SVG drawings. Vital Marketplace installs org.inkscape.Inkscape from Flathub. The catalog icon is original.",
+  "icon_file": "icons/draw.svg",
+  "version": "flathub",
+  "category": "Graphics",
+  "publisher": "The Inkscape team",
+  "homepage": "https://inkscape.org/",
+  "license": "GPL-2.0-or-later",
+  "install": { "method": "flatpak", "flatpak_id": "org.inkscape.Inkscape" },
+  "min_os_version": "0.1.0"
+}

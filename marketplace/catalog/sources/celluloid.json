@@ -1,0 +1,14 @@
+{
+  "id": "celluloid",
+  "name": "Celluloid",
+  "summary": "A small GTK video player.",
+  "description": "Celluloid plays local video and audio through mpv. It is part of the curated Vital OS set. The catalog icon is original.",
+  "icon_file": "icons/media.svg",
+  "version": "system",
+  "category": "Media",
+  "publisher": "Celluloid contributors",
+  "homepage": "https://celluloid-player.github.io/",
+  "license": "GPL-3.0-or-later",
+  "install": { "method": "apt", "package": "celluloid" },
+  "min_os_version": "0.1.0"
+}

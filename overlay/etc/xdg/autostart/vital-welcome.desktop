@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Vital Welcome
+Comment=First-run introduction to Vital OS
+Exec=vital-welcome
+Icon=vitalos
+Terminal=false
+Categories=System;
+OnlyShowIn=GNOME;
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=2
+NoDisplay=true

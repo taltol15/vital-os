@@ -1,0 +1,15 @@
+{
+  "id": "vital-example-note",
+  "name": "Vital Example Note",
+  "summary": "Example script. It prints one line and changes nothing.",
+  "description": "This entry exists so the script installer can be reviewed. It is not a product. Marketplace shows the script and asks before it runs. The helper downloads it again and refuses it if the SHA-256 does not match. A .deb would use the same url and sha256 fields with method deb.",
+  "icon_file": "icons/example.svg",
+  "version": "0.1.0",
+  "category": "Examples",
+  "publisher": "Vital OS",
+  "homepage": "https://github.com/taltol15/vital-os",
+  "license": "GPL-3.0-or-later",
+  "install": { "method": "script", "file": "examples/vital-demo-note.sh" },
+  "example": true,
+  "min_os_version": "0.1.0"
+}

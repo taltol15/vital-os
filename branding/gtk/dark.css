@@ -1,0 +1,46 @@
+/* Vital OS — Nocturne dark. Placeholders are filled in by vital-welcome
+   and by the image build for /etc/skel. */
+@define-color accent_color __ACCENT_HI__;
+@define-color accent_bg_color __ACCENT__;
+@define-color accent_fg_color __ACCENT_FG__;
+
+@define-color window_bg_color #0c0f14;
+@define-color window_fg_color #f3eee4;
+@define-color view_bg_color #08090c;
+@define-color view_fg_color #f3eee4;
+@define-color headerbar_bg_color #141820;
+@define-color headerbar_fg_color #f3eee4;
+@define-color card_bg_color #181e27;
+@define-color card_fg_color #f3eee4;
+@define-color popover_bg_color #1c232e;
+@define-color popover_fg_color #f3eee4;
+@define-color dialog_bg_color #141820;
+@define-color dialog_fg_color #f3eee4;
+@define-color sidebar_bg_color #08090c;
+@define-color sidebar_fg_color #f3eee4;
+@define-color secondary_sidebar_bg_color #12161c;
+@define-color shade_color rgba(0, 0, 0, 0.36);
+
+@define-color theme_bg_color #141820;
+@define-color theme_fg_color #f3eee4;
+@define-color theme_base_color #0c0f14;
+@define-color theme_text_color #f3eee4;
+@define-color theme_selected_bg_color __ACCENT__;
+@define-color theme_selected_fg_color __ACCENT_FG__;
+@define-color theme_unfocused_selected_bg_color __ACCENT__;
+@define-color theme_unfocused_selected_fg_color __ACCENT_FG__;
+
+window, dialog, popover, .background {
+  background-color: @window_bg_color;
+  color: @window_fg_color;
+}
+
+headerbar, .titlebar {
+  background-color: @headerbar_bg_color;
+  color: @headerbar_fg_color;
+}
+
+selection, :selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+}

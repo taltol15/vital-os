@@ -1,0 +1,7 @@
+#!/bin/bash
+# Launch the installer only for the "Install Vital OS" GRUB entry.
+set -euo pipefail
+if grep -qw 'vitalos.installer' /proc/cmdline; then
+    exec sudo -n -E calamares
+fi
+exit 0

@@ -1,0 +1,88 @@
+# Vital OS Plymouth script. Cubic fade-in, then a gold rule that breathes
+# until boot progress arrives and eases toward the real value.
+
+Window.SetBackgroundTopColor(0.020, 0.024, 0.031);
+Window.SetBackgroundBottomColor(0.031, 0.035, 0.047);
+
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetOpacity(0);
+
+progress_box.image = Image("progress.png");
+progress_box.sprite = Sprite();
+progress_box.sprite.SetOpacity(0);
+
+tick = 0;
+fade = 0;
+boot_progress = 0;
+drawn = 0;
+
+fun center_logo() {
+    logo.sprite.SetX(Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
+    logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 12);
+}
+
+fun paint_bar(amount) {
+    bar_w = Window.GetWidth() / 7;
+    if (bar_w < 140) {
+        bar_w = 140;
+    }
+    if (bar_w > 280) {
+        bar_w = 280;
+    }
+    filled = bar_w * amount;
+    if (filled < 2) {
+        filled = 2;
+    }
+    progress_box.sprite.SetImage(progress_box.image.Scale(filled, 2));
+    progress_box.sprite.SetX(Window.GetWidth() / 2 - bar_w / 2);
+    progress_box.sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 22);
+}
+
+center_logo();
+paint_bar(0.04);
+
+fun refresh_callback() {
+    tick = tick + 1;
+    if (fade < 1) {
+        fade = fade + 0.018;
+        if (fade > 1) fade = 1;
+    }
+    remain = 1 - fade;
+    logo.sprite.SetOpacity(1 - remain * remain * remain);
+
+    phase = tick - (tick / 64) * 64;
+    if (phase > 32) phase = 64 - phase;
+    breath = phase / 32;
+
+    if (boot_progress < 0.04) {
+        progress_box.sprite.SetOpacity(0.28 + breath * 0.62);
+        target = 0.08 + breath * 0.16;
+    } else {
+        progress_box.sprite.SetOpacity(0.92);
+        target = boot_progress;
+    }
+    drawn = drawn + (target - drawn) * 0.18;
+    if (drawn < 0.02) drawn = 0.02;
+    center_logo();
+    paint_bar(drawn);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun progress_callback(duration, progress) {
+    boot_progress = progress;
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+message_sprite = Sprite();
+
+fun message_callback(text) {
+    message_image = Image.Text(text, 0.76, 0.73, 0.68, 1);
+    message_sprite.SetImage(message_image);
+    message_sprite.SetX(Window.GetWidth() / 2 - message_image.GetWidth() / 2);
+    message_sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 44);
+}
+
+Plymouth.SetDisplayMessageFunction(message_callback);

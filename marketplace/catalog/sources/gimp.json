@@ -1,0 +1,14 @@
+{
+  "id": "gimp",
+  "name": "GIMP",
+  "summary": "Image editor, installed from Flathub.",
+  "description": "GNU Image Manipulation Program. Vital Marketplace installs the Flathub build org.gimp.GIMP. Flathub must be reachable the first time. The catalog icon is an original tile, not the GIMP mascot.",
+  "icon_file": "icons/graphics.svg",
+  "version": "flathub",
+  "category": "Graphics",
+  "publisher": "The GIMP team",
+  "homepage": "https://www.gimp.org/",
+  "license": "GPL-3.0-or-later",
+  "install": { "method": "flatpak", "flatpak_id": "org.gimp.GIMP" },
+  "min_os_version": "0.1.0"
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="day" cx="0.5" cy="0.34" r="0.8">
+      <stop offset="0%" stop-color="#F7F3EA"/>
+      <stop offset="48%" stop-color="#E7E0D2"/>
+      <stop offset="100%" stop-color="#D9D0C0"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.32">
+      <stop offset="0%" stop-color="#C6A56A" stop-opacity="0.20"/>
+      <stop offset="70%" stop-color="#C6A56A" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#C6A56A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rule" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#8A7040" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#8A7040" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#8A7040" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="#E7E0D2"/>
+  <rect width="1920" height="1080" fill="url(#day)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <circle cx="960" cy="450" r="340" fill="none" stroke="#171C24" stroke-opacity="0.08" stroke-width="1"/>
+  <circle cx="960" cy="450" r="220" fill="none" stroke="#8A7040" stroke-opacity="0.55" stroke-width="1.25"/>
+  <g transform="translate(960 450)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-78 48 L0 -58 L78 48" stroke="#171C24" stroke-width="2.6"/>
+    <circle cx="0" cy="-58" r="4.5" fill="#8A7040" stroke="none"/>
+    <path d="M-44 78 H44" stroke="#8A7040" stroke-width="1.5"/>
+  </g>
+  <rect x="730" y="800" width="460" height="1.2" fill="url(#rule)"/>
+</svg>

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Vital
+Comment=Vital OS Nocturne shell
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Adwaita-dark
+MetacityTheme=Adwaita
+IconTheme=Papirus-Dark
+CursorTheme=Adwaita
+ButtonLayout=appmenu:minimize,maximize,close

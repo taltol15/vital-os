@@ -1,0 +1,82 @@
+name: Vital OS ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish a prerelease and upload the ISO as a release asset
+        type: boolean
+        default: true
+  push:
+    tags:
+      - "v*"
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install check tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3 python3-pip python3-venv
+          python3 -m pip install --break-system-packages -r marketplace/server/requirements.txt
+      - name: Static checks
+        run: VITAL_REQUIRE_MARKET_TESTS=1 ./build.sh check
+
+  build:
+    needs: check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache || true
+          sudo docker image prune -af || true
+          df -h
+
+      - name: Install host build dependencies
+        run: sudo ./build.sh install-deps
+
+      - name: Build the hybrid ISO
+        run: sudo ./build.sh iso
+
+      - name: Split the ISO if needed and write SHA256SUMS
+        run: ./build/package-release.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitalos-${{ github.sha }}
+          path: build/output/release/
+          retention-days: 2
+          if-no-files-found: error
+
+      - name: Publish GitHub release assets
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.publish_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            tag="${GITHUB_REF_NAME}"
+            title="Vital OS ${tag}"
+            notes="Vital OS ${tag} hybrid live and install ISO. Join any .part files, then check SHA256SUMS. Secure Boot is not supported in this release."
+            gh release create "$tag" --title "$title" --notes "$notes" build/output/release/*
+          else
+            tag="ci-${GITHUB_RUN_ID}"
+            gh release create "$tag" \
+              --prerelease \
+              --target "${GITHUB_SHA}" \
+              --title "Vital OS ${tag}" \
+              --notes "Automated image from workflow_dispatch at ${GITHUB_SHA}. Join any .part files, then check SHA256SUMS." \
+              build/output/release/*
+          fi

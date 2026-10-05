@@ -1,0 +1,10 @@
+Vital OS is an unofficial operating system image based on Ubuntu 24.04 LTS.
+It is not affiliated with, endorsed by, or sponsored by Canonical Ltd.
+Ubuntu and the Ubuntu logo are trademarks of Canonical Ltd.
+
+Vital OS does not include NVIDIA branding, Ubuntu trademark artwork, or
+third-party certification marks. Hardware drivers that happen to be
+packaged by Ubuntu remain available through the Ubuntu archives.
+
+Individual packages retain their own licenses. See
+/usr/share/doc/*/copyright and /usr/share/vitalos/NOTICE.
