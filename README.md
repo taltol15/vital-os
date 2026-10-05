@@ -139,14 +139,26 @@ Vital Welcome, exported from the GTK4 app on a running display (welcome, appeara
 
 ![Privacy](docs/screenshots/welcome-privacy.png)
 
+Real frames from QEMU (TCG, because KVM was not usable on the build host). BIOS and UEFI both reached the GRUB theme. The splash and the text console are from the live initrd:
+
+![GRUB, UEFI](docs/screenshots/qemu-uefi.png)
+
+![Plymouth](docs/screenshots/qemu-plymouth.png)
+
+![Console](docs/screenshots/qemu-console.png)
+
 ## Verification
 
-Checked on an Ubuntu 24.04 host while this tree was written:
+On an Ubuntu 24.04 host:
 
 - `./build.sh check` passes: `bash -n`, `python3 -m py_compile`, and shellcheck.
-- `docs/screenshots/wallpaper.png`, `plymouth.png`, `gdm.png`, and `desktop.png` are composed from the SVG branding. They are not photographs of a booted virtual machine.
-- Vital Welcome was launched with GTK 4 and libadwaita. The four `welcome*.png` files are exports of those pages, including the carousel position for each one.
-- The hybrid ISO and a QEMU boot are recorded separately once that build has been run. Until that note is updated here, treat the image scripts as reviewed but the boot as not yet demonstrated.
+- `docs/screenshots/wallpaper.png`, `plymouth.png`, `gdm.png`, and `desktop.png` are composed from the SVG branding.
+- Vital Welcome was launched with GTK 4 and libadwaita. The four `welcome*.png` files are exports of those pages.
+- `sudo ./build.sh iso` completed. The image is `build/output/VitalOS-0.1.0-amd64.iso`, about 1.8 GiB, so it does not need to be split for a GitHub release. It is gitignored.
+- QEMU with KVM exited with "Permission denied" for this user. Running it as root hit a host KVM fault, so the boot tests used TCG.
+- BIOS and UEFI (OVMF pflash) both showed the Vital OS GRUB menu: Try, Install, and safe graphics. See `docs/screenshots/qemu-grub-bios.png` and `docs/screenshots/qemu-uefi.png`.
+- A direct kernel boot of that ISO, with the same `boot=casper quiet` arguments as the GRUB entry, passed the overlay mount, started GNOME Display Manager, and started the live user session (`user@1000`). The framebuffer stayed on the Plymouth splash (`docs/screenshots/qemu-plymouth.png`) for the few minutes TCG was left running, so there is no photograph of the GNOME desktop from the guest. tty2 showed `Vital OS 0.1.0 vitalos` and a login prompt (`docs/screenshots/qemu-console.png`).
+- Calamares was not clicked through an install. Plymouth logged a missing `label-pango.so` plugin; the logo is a pixmap and still appeared. `xorriso` warns that `/EFI/BOOT` is not also copied into the ISO tree; the EFI boot image is the appended FAT partition. Secure Boot was not tested and is not supported.
 
 ## Trademarks and licenses
 

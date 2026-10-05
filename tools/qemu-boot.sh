@@ -49,7 +49,20 @@ case "$MODE" in
             printf 'OVMF firmware not found. Install the ovmf package.\n' >&2
             exit 1
         }
-        args+=(-bios "$code")
+        vars="${code/CODE/VARS}"
+        [[ -f "$vars" ]] || vars="/usr/share/OVMF/OVMF_VARS_4M.fd"
+        [[ -f "$vars" ]] || {
+            printf 'OVMF variable template not found next to %s\n' "$code" >&2
+            exit 1
+        }
+        vars_copy="${ROOT}/build/output/OVMF_VARS.fd"
+        mkdir -p "${ROOT}/build/output"
+        cp -f "$vars" "$vars_copy"
+        # OVMF_CODE_4M.fd is a pflash image, not a legacy -bios ROM.
+        args+=(
+            -drive "if=pflash,format=raw,readonly=on,file=${code}"
+            -drive "if=pflash,format=raw,file=${vars_copy}"
+        )
         ;;
     *)
         printf 'Usage: %s [bios|uefi]\n' "$0" >&2
