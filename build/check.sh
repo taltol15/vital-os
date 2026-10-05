@@ -91,8 +91,8 @@ fi
 if grep -q '^eject$' config/packages.live.list config/calamares/modules/packages.conf; then
     bad "eject must stay installed; nautilus depends on it"
 fi
-if ! grep -q '^0.2.0$' VERSION; then
-    bad "VERSION is not 0.2.0"
+if ! grep -q '^0.2.1$' VERSION; then
+    bad "VERSION is not 0.2.1"
 fi
 for stamped in overlay/etc/issue overlay/etc/issue.net overlay/etc/motd overlay/etc/vitalos-release overlay/etc/gdm3/greeter.dconf-defaults branding/grub/theme.txt config/calamares/branding/vitalos/branding.desc config/calamares/branding/vitalos/show.qml; do
     if ! grep -q '@VERSION@' "$stamped"; then

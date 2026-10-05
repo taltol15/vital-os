@@ -6,7 +6,7 @@ The desktop still *uses* upstream open-source components (GNOME, Adwaita as the 
 
 ## Mark
 
-The symbol is a thin gold ring, a quieter inner ring, an ivory chevron, a gold point at the apex, and a short gold baseline. The chevron sits slightly above the geometric center so the mark does not look bottom-heavy. It reads as a settled pulse and as the letter V.
+The symbol is a thin gold ring, a quieter inner ring, and an ivory V. The point of the V is at the bottom and the arms open upward. A small gold dot sits on that point. There is no bar under the V.
 
 The wordmark is drawn as paths, not live type, so the spacing does not depend on which Inter file a renderer finds. VITAL is ivory. OS is smaller, champagne, and sits on the same baseline. Sidebearings are wider around the I and after the T’s crossbar.
 

@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Vital Marketplace">
   <title>Vital Marketplace</title>
   <circle cx="64" cy="64" r="49" stroke="#C6A56A" stroke-width="1.35"/>
-  <path d="M39 79.5 L64 41.5 L89 79.5" stroke="#F3EEE4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M39 48.5 L64 86.5 L89 48.5" stroke="#F3EEE4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="46" cy="96" r="3.2" fill="#C6A56A"/>
   <circle cx="64" cy="96" r="3.2" fill="#E6D3A4"/>
   <circle cx="82" cy="96" r="3.2" fill="#C6A56A"/>

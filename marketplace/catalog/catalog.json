@@ -96,7 +96,7 @@
       "name": "Vital Assistant",
       "summary": "Ask for a command. It runs only after you confirm.",
       "description": "Vital Assistant answers questions about this system from the terminal (vital ask) and from a window opened with Super+Shift+A. The default provider is xAI Grok using a key you create at console.x.ai. OpenAI-compatible endpoints and a local Ollama install are also supported. The key is stored in the system keyring and is never written to a file or sent to vital-os.org. Prompts are not part of Vital OS telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 of the package matches, and Remove uninstalls the command, the window, the shell hook, and the shortcut.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "System",
       "publisher": "Vital OS",
       "homepage": "https://github.com/taltol15/vital-os",
@@ -104,16 +104,16 @@
       "install": {
         "method": "deb",
         "package": "vital-assistant",
-        "url": "bundled://debs/vital-assistant_0.2.0_all.deb",
-        "sha256": "f672525fcfe81fb6bc998ea60a103e56813d3c99992a4fe3b730aa1647eddf4d"
+        "url": "bundled://debs/vital-assistant_0.2.1_all.deb",
+        "sha256": "18ba1b441ef492a5ff87c8148b1178ba6f837f79cf91175f5b2df3018d43b241"
       },
       "min_os_version": "0.2.0",
       "icon": {
         "url": "bundled://icons/vital-assistant.svg",
-        "sha256": "c52dc654fae4b2434f1a9324685f855424b9a69ff56b67f31e8cfb9abda13626"
+        "sha256": "d8fb47236d989861e176da6f150e78dc1d98824efc54ee6903f9a0499e5c2e0d"
       },
       "screenshots": [],
-      "checksum": "486efd119f441be97a0230e17e64286b84bc2cee03492f70db36348133128fa4"
+      "checksum": "c3e14ef2215c226d200291b6e57b2c3858c34e8875443e666c90b75b2c7d53fd"
     },
     {
       "id": "vital-example-note",

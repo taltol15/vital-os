@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the Nocturne boot mark: an open champagne V, one stroke at a time."""
+"""Draw the Nocturne boot mark: a champagne V, point down, one stroke at a time."""
 
 from __future__ import annotations
 
@@ -10,16 +10,13 @@ from PIL import Image, ImageDraw
 OUT = Path(__file__).resolve().parent
 SIZE = 256
 CHAMPAGNE = (198, 165, 106, 255)
-IVORY = (246, 241, 231, 255)
 WIDTH = 7
 
-# The same proportions as branding/logo/vital-symbol.svg, without the ring.
-# The baseline sits under the feet so the mark cannot be read as an A.
-APEX = (128, 74)
-LEFT = (74, 168)
-RIGHT = (182, 168)
-BASE_A = (102, 190)
-BASE_B = (154, 190)
+# Same proportions as branding/logo/vital-symbol.svg, without the ring.
+# The point is the bottom vertex. The arms open upward. There is no bar under it.
+LEFT = (72, 78)
+POINT = (128, 186)
+RIGHT = (184, 78)
 
 
 def _lerp(start: tuple[int, int], end: tuple[int, int], amount: float) -> tuple[int, int]:
@@ -36,19 +33,19 @@ def _stroke(draw: ImageDraw.ImageDraw, start: tuple[int, int], end: tuple[int, i
 
 
 def frame(count: int) -> Image.Image:
-    """Eight cumulative frames. 1–3 grow the left arm, 4–6 the right, 7 the baseline, 8 the dot."""
+    """Eight frames. 1–3 grow the left arm down to the point, 4–6 the right arm up, 7–8 add the dot."""
     image = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    left = min(max(count, 0) / 3, 1)
-    right = min(max(count - 3, 0) / 3, 1)
-    _stroke(draw, APEX, LEFT, left)
-    _stroke(draw, APEX, RIGHT, right)
-    if count >= 1:
-        draw.ellipse((APEX[0] - 4, APEX[1] - 4, APEX[0] + 4, APEX[1] + 4), fill=CHAMPAGNE)
+    left = min(max(count, 0), 3) / 3
+    right = min(max(count - 3, 0), 3) / 3
+    _stroke(draw, LEFT, POINT, left)
+    _stroke(draw, POINT, RIGHT, right)
     if count >= 7:
-        draw.line((*BASE_A, *BASE_B), fill=IVORY, width=4)
-    if count >= 8:
-        draw.ellipse((APEX[0] - 7, APEX[1] - 22, APEX[0] + 7, APEX[1] - 8), fill=CHAMPAGNE)
+        radius = 6
+        draw.ellipse(
+            (POINT[0] - radius, POINT[1] - radius, POINT[0] + radius, POINT[1] + radius),
+            fill=CHAMPAGNE,
+        )
     return image
 
 
@@ -57,9 +54,7 @@ def main() -> None:
         frame(index).save(OUT / f"frame-{index:02d}.png")
     poster = Image.new("RGBA", (1280, 720), (12, 15, 20, 255))
     mark = frame(8).resize((300, 300), Image.Resampling.LANCZOS)
-    poster.alpha_composite(mark, (490, 150))
-    draw = ImageDraw.Draw(poster)
-    draw.line((520, 500, 760, 500), fill=CHAMPAGNE, width=3)
+    poster.alpha_composite(mark, (490, 160))
     poster.convert("RGB").save(OUT / "boot-frame.png")
 
 

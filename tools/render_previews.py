@@ -29,7 +29,7 @@ MUTED = (138, 132, 120, 255)
 
 def os_version() -> str:
     text = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    return text or "0.2.0"
+    return text or "0.2.1"
 
 
 def die(message: str) -> None:

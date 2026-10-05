@@ -3,7 +3,6 @@
   <title>Vital OS</title>
   <circle cx="64" cy="64" r="49" stroke="#C6A56A" stroke-width="1.35"/>
   <circle cx="64" cy="64" r="43.25" stroke="#F3EEE4" stroke-opacity="0.28" stroke-width="0.6"/>
-  <path d="M39 79.5 L64 41.5 L89 79.5" stroke="#F3EEE4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="64" cy="41.5" r="2.55" fill="#C6A56A"/>
-  <path d="M51 91.5 H77" stroke="#C6A56A" stroke-width="1.35" stroke-linecap="round"/>
+  <path d="M39 48.5 L64 86.5 L89 48.5" stroke="#F3EEE4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="86.5" r="2.55" fill="#C6A56A"/>
 </svg>

@@ -1,4 +1,4 @@
-# Vital OS boot theme. A champagne V draws itself, then a soft glow.
+# Vital OS boot theme. A champagne V, point down, draws itself, then a soft glow.
 # Refresh work is a sprite swap, not a new image.
 
 Window.SetBackgroundTopColor(0.047, 0.059, 0.078);

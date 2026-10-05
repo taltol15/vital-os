@@ -23,9 +23,8 @@
   <circle cx="960" cy="460" r="360" fill="none" stroke="#F6F1E7" stroke-opacity="0.045" stroke-width="1"/>
   <circle cx="960" cy="460" r="236" fill="none" stroke="#C6A56A" stroke-opacity="0.38" stroke-width="1.25"/>
   <g transform="translate(960 460)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M-78 48 L0 -58 L78 48" stroke="#F3EEE4" stroke-width="2.6"/>
-    <circle cx="0" cy="-64" r="5" fill="#C6A56A" stroke="none"/>
-    <path d="M-50 86 H50" stroke="#C6A56A" stroke-width="1.6"/>
+    <path d="M-78 -48 L0 58 L78 -48" stroke="#F3EEE4" stroke-width="2.6"/>
+    <circle cx="0" cy="58" r="5" fill="#C6A56A" stroke="none"/>
   </g>
   <rect x="710" y="790" width="500" height="1.25" fill="url(#rule)"/>
 </svg>
