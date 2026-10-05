@@ -50,7 +50,10 @@ jobs:
         run: sudo ./build.sh iso
 
       - name: Split the ISO if needed and write SHA256SUMS
-        run: ./build/package-release.sh
+        run: |
+          # The ISO step runs as root, so build/output is not writable by the runner user.
+          sudo chown -R "$USER:$USER" build/output
+          ./build/package-release.sh
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
