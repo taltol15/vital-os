@@ -56,4 +56,4 @@ def fallback_version(version_file: Path) -> str:
         text = version_file.read_text(encoding="utf-8").strip()
         if text:
             return text
-    return "0.2.0"
+    return "0.2.1"

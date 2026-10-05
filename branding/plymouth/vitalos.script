@@ -1,5 +1,5 @@
-# Vital OS boot theme. The mark draws itself, then a champagne rule eases
-# toward real boot progress. Refresh work is a sprite swap, not a new image.
+# Vital OS boot theme. A champagne V, point down, draws itself, then a soft glow.
+# Refresh work is a sprite swap, not a new image.
 
 Window.SetBackgroundTopColor(0.047, 0.059, 0.078);
 Window.SetBackgroundBottomColor(0.020, 0.024, 0.031);

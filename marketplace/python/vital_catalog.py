@@ -22,6 +22,25 @@ FLATPAK_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*(\.[A-Za-z_][A-Za-z0-9_-]*)+$"
 METHODS = {"apt", "flatpak", "deb", "script"}
 
 
+def version_is_newer(catalog_version: str, installed_version: str) -> bool:
+    """True when the catalog version is a newer dotted release than the installed one."""
+
+    def parts(text: str) -> tuple[int, ...]:
+        body = text.split(":", 1)[-1].split("-", 1)[0]
+        numbers: list[int] = []
+        for piece in body.split("."):
+            digits = ""
+            for char in piece:
+                if char.isdigit():
+                    digits += char
+                else:
+                    break
+            numbers.append(int(digits) if digits else 0)
+        return tuple(numbers)
+
+    return parts(catalog_version) > parts(installed_version)
+
+
 def canonical_bytes(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 

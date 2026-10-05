@@ -296,11 +296,9 @@ prepare_stage() {
     mkdir -p "${stage}/overlay"
     cp -a "${VITAL_ROOT_DIR}/overlay/." "${stage}/overlay/"
     stamp_version "${stage}/overlay"
-    if [[ -f "${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb" ]]; then
-        install -m 0644 \
-            "${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb" \
-            "${stage}/vital-assistant.deb"
-    fi
+    local assistant_deb="${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb"
+    [[ -f "$assistant_deb" ]] || die "vital-assistant package is missing from the catalog"
+    install -m 0644 "$assistant_deb" "${stage}/vital-assistant.deb"
     chown -R root:root "${stage}/overlay"
 }
 
@@ -432,10 +430,20 @@ wrap_iso() {
     ls -lh "$outfile"
 }
 
+build_assistant_package() {
+    python3 "${VITAL_ROOT_DIR}/apps/vital-assistant/build_deb.py"
+    local deb="${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb"
+    [[ -f "$deb" ]] || die "vital-assistant package was not built"
+}
+
+
 build_iso() {
     [[ "$(id -u)" -eq 0 ]] || die "The ISO build needs root (debootstrap and mounts)."
     trap cleanup EXIT
     ensure_host_deps
+    # The deb is gitignored. Build it before branding is copied, or the ISO
+    # ships the catalog entry without the package.
+    build_assistant_package
     mkdir -p "$WORK" "$OUTPUT" "$CACHE"
     ensure_space_and_swap
     stage_downloads

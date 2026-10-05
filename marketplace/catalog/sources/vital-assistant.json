@@ -4,7 +4,7 @@
   "summary": "Ask for a command. It runs only after you confirm.",
   "description": "Vital Assistant answers questions about this system from the terminal (vital ask) and from a window opened with Super+Shift+A. The default provider is xAI Grok using a key you create at console.x.ai. OpenAI-compatible endpoints and a local Ollama install are also supported. The key is stored in the system keyring and is never written to a file or sent to vital-os.org. Prompts are not part of Vital OS telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 of the package matches, and Remove uninstalls the command, the window, the shell hook, and the shortcut.",
   "icon_file": "icons/vital-assistant.svg",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "category": "System",
   "publisher": "Vital OS",
   "homepage": "https://github.com/taltol15/vital-os",
@@ -12,7 +12,7 @@
   "install": {
     "method": "deb",
     "package": "vital-assistant",
-    "file": "debs/vital-assistant_0.2.0_all.deb"
+    "file": "debs/vital-assistant_0.2.1_all.deb"
   },
   "min_os_version": "0.2.0"
 }

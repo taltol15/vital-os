@@ -20,7 +20,14 @@ from vital_catalog import (  # noqa: E402
     sign_bytes,
     validate_catalog,
     verify_catalog_signature,
+    version_is_newer,
 )
+
+
+def test_version_is_newer_compares_dotted_releases() -> None:
+    assert version_is_newer("0.2.1", "0.2.0")
+    assert not version_is_newer("0.2.0", "0.2.0")
+    assert not version_is_newer("0.1.9", "0.2.0")
 
 
 def test_bundled_catalog_validates() -> None:
