@@ -137,6 +137,17 @@ EOF
     rm -rf "$work"
 }
 
+stamp_version() {
+    local root="$1"
+    local file
+    [[ -d "$root" ]] || return 0
+    while IFS= read -r -d '' file; do
+        if grep -q '@VERSION@' "$file"; then
+            sed -i "s/@VERSION@/${VERSION}/g" "$file"
+        fi
+    done < <(find "$root" -type f -print0)
+}
+
 write_identity_files() {
     local stage="$1"
     sed "s/@VERSION@/${VERSION}/g" "${VITAL_ROOT_DIR}/config/os-release.in" > "${stage}/os-release"
@@ -191,6 +202,11 @@ install_brand_assets() {
         "${root}/usr/share/plymouth/themes/vitalos/vitalos.plymouth"
     install -m 0644 "${VITAL_ROOT_DIR}/branding/plymouth/vitalos.script" \
         "${root}/usr/share/plymouth/themes/vitalos/vitalos.script"
+    local frame
+    for frame in "${VITAL_ROOT_DIR}"/branding/plymouth/frame-*.png; do
+        [[ -f "$frame" ]] || continue
+        install -m 0644 "$frame" "${root}/usr/share/plymouth/themes/vitalos/$(basename "$frame")"
+    done
     install -m 0644 "${brand}/plymouth-logo.png" "${root}/usr/share/plymouth/themes/vitalos/logo.png"
     install -m 0644 "${brand}/plymouth-progress.png" "${root}/usr/share/plymouth/themes/vitalos/progress.png"
 
@@ -256,6 +272,12 @@ install_brand_assets() {
     install -m 0644 "${brand}/symbol-256.png" "${root}/etc/calamares/branding/vitalos/logo.png"
     install -m 0644 "${brand}/symbol-128.png" "${root}/etc/calamares/branding/vitalos/icon.png"
     install -m 0644 "${brand}/lockup.png" "${root}/etc/calamares/branding/vitalos/welcome.png"
+    stamp_version "${root}/etc/calamares"
+    stamp_version "${root}/usr/share/grub/themes/vital"
+    if [[ -d "${VITAL_ROOT_DIR}/branding/sounds" ]]; then
+        install -d "${root}/usr/share/sounds/vital"
+        cp -a "${VITAL_ROOT_DIR}/branding/sounds/." "${root}/usr/share/sounds/vital/"
+    fi
 }
 
 prepare_stage() {
@@ -273,6 +295,12 @@ prepare_stage() {
     install -m 0644 "${VITAL_ROOT_DIR}/config/flathub.flatpakrepo" "${stage}/flathub.flatpakrepo"
     mkdir -p "${stage}/overlay"
     cp -a "${VITAL_ROOT_DIR}/overlay/." "${stage}/overlay/"
+    stamp_version "${stage}/overlay"
+    if [[ -f "${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb" ]]; then
+        install -m 0644 \
+            "${VITAL_ROOT_DIR}/marketplace/catalog/debs/vital-assistant_${VERSION}_all.deb" \
+            "${stage}/vital-assistant.deb"
+    fi
     chown -R root:root "${stage}/overlay"
 }
 

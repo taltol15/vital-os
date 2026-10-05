@@ -96,6 +96,20 @@ def package_installed(item: dict) -> bool | None:
     return None
 
 
+def animations_enabled() -> bool:
+    source = Gio.SettingsSchemaSource.get_default()
+    if source is None or source.lookup("org.gnome.desktop.interface", True) is None:
+        return True
+    try:
+        store = Gio.Settings.new("org.gnome.desktop.interface")
+    except GLib.Error:
+        return True
+    schema = store.get_property("settings-schema")
+    if schema is None or not schema.has_key("enable-animations"):
+        return True
+    return bool(store.get_boolean("enable-animations"))
+
+
 class MarketWindow(Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application) -> None:
         super().__init__(application=app, title="Vital Marketplace")
@@ -209,7 +223,10 @@ class MarketWindow(Adw.ApplicationWindow):
             self.list.remove(child)
         for item in self._visible_items():
             row = Adw.ActionRow(title=item["name"], subtitle=item["summary"])
-            if item.get("example"):
+            state = package_installed(item)
+            if state is True:
+                row.set_subtitle("Installed. " + item["summary"])
+            elif item.get("example"):
                 row.set_subtitle("Example. " + item["summary"])
             button = Gtk.Button(label="Details")
             button.set_valign(Gtk.Align.CENTER)
@@ -238,6 +255,16 @@ class MarketWindow(Adw.ApplicationWindow):
             )
             note.add_css_class("warning")
             box.append(note)
+        state = package_installed(item)
+        if state is True:
+            state_text = "Installed"
+        elif state is False:
+            state_text = "Not installed"
+        else:
+            state_text = "Install state unknown"
+        state_label = Gtk.Label(label=state_text, xalign=0)
+        state_label.add_css_class("title-4")
+        box.append(state_label)
         summary = Gtk.Label(label=item["summary"], xalign=0, wrap=True)
         summary.add_css_class("dim-label")
         box.append(summary)
@@ -271,7 +298,7 @@ class MarketWindow(Adw.ApplicationWindow):
         install.connect("clicked", lambda _b: self._begin(item, "install"))
         update = Gtk.Button(label="Update")
         update.connect("clicked", lambda _b: self._begin(item, "upgrade"))
-        remove = Gtk.Button(label="Uninstall")
+        remove = Gtk.Button(label="Remove")
         remove.add_css_class("destructive-action")
         remove.connect("clicked", lambda _b: self._begin(item, "remove"))
         state = package_installed(item)
@@ -296,7 +323,8 @@ class MarketWindow(Adw.ApplicationWindow):
         view = os.environ.get("VITAL_MARKET_VIEW", "")
         shot = os.environ.get("VITAL_MARKET_SHOT", "")
         if view == "detail" and self.items:
-            chosen = next((item for item in self.items if item["id"] == "gimp"), self.items[0])
+            wanted = os.environ.get("VITAL_MARKET_ITEM", "gimp")
+            chosen = next((item for item in self.items if item["id"] == wanted), self.items[0])
             self.nav.push(self._details_page(chosen))
         if shot:
             GLib.timeout_add(200, self._save_shot, shot, view)
@@ -339,6 +367,12 @@ class MarketWindow(Adw.ApplicationWindow):
         renderer.render_texture(node, None).save_to_png(path)
         self.close()
         return False
+
+    def _pulse_progress(self) -> bool:
+        if not self._busy:
+            return False
+        self.progress.pulse()
+        return True
 
     def _begin(self, item: dict, action: str) -> None:
         if self._busy:
@@ -390,6 +424,8 @@ class MarketWindow(Adw.ApplicationWindow):
         self.progress.set_visible(True)
         self.progress.set_fraction(0.05)
         self.status.set_label("Waiting for authorization…")
+        if animations_enabled():
+            GLib.timeout_add(140, self._pulse_progress)
         thread = threading.Thread(
             target=self._run_helper,
             args=(item, action, confirmed),

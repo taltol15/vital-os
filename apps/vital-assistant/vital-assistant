@@ -1,0 +1,309 @@
+#!/usr/bin/env python3
+"""Vital Assistant window. Super+Shift+A opens it. Super+Space stays the input switch."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gio, GLib, Gtk
+
+for extra in (Path("/usr/lib/vitalos"), Path(__file__).resolve().parent):
+    if extra.is_dir() and str(extra) not in sys.path:
+        sys.path.insert(0, str(extra))
+
+from vital_assistant import (  # noqa: E402
+    AssistantError,
+    Settings,
+    keystore_for,
+    load_settings,
+    save_user_settings,
+    suggest,
+)
+
+APP_ID = "org.vitalos.Assistant"
+
+
+def animations_on() -> bool:
+    source = Gio.SettingsSchemaSource.get_default()
+    if source is None or source.lookup("org.gnome.desktop.interface", True) is None:
+        return True
+    try:
+        store = Gio.Settings.new("org.gnome.desktop.interface")
+    except GLib.Error:
+        return True
+    schema = store.get_property("settings-schema")
+    if schema is None or not schema.has_key("enable-animations"):
+        return True
+    return bool(store.get_boolean("enable-animations"))
+
+
+class AssistantWindow(Adw.ApplicationWindow):
+    def __init__(self, app: Adw.Application) -> None:
+        super().__init__(application=app, title="Vital Assistant")
+        self.set_default_size(720, 560)
+        self.settings = load_settings()
+        self._busy = False
+
+        self.stack = Gtk.Stack()
+        duration = 180 if animations_on() else 0
+        self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.stack.set_transition_duration(duration)
+        self.stack.add_named(self._connect_page(), "connect")
+        self.stack.add_named(self._ask_page(), "ask")
+
+        header = Adw.HeaderBar()
+        view = Adw.ToolbarView()
+        view.add_top_bar(header)
+        view.set_content(self.stack)
+        self.set_content(view)
+        self._show_start()
+
+    def _show_start(self) -> None:
+        view = os.environ.get("VITAL_ASSISTANT_VIEW", "")
+        if view == "connect":
+            self.stack.set_visible_child_name("connect")
+            return
+        if view == "ask" or self._ready():
+            self.stack.set_visible_child_name("ask")
+            if view == "ask":
+                self.answer.set_text(
+                    "rmdir empty-folder\n\n"
+                    "rmdir removes an empty directory. It does not recurse."
+                )
+            return
+        self.stack.set_visible_child_name("connect")
+
+    def _ready(self) -> bool:
+        if self.settings.provider in {"mock", "ollama"}:
+            return True
+        try:
+            store = keystore_for(self.settings)
+        except AssistantError:
+            return False
+        account = "grok" if self.settings.provider == "grok" else "openai"
+        return bool(store.load(account))
+
+    def _connect_page(self) -> Gtk.Widget:
+        page = Adw.StatusPage()
+        page.set_icon_name("dialog-question-symbolic")
+        page.set_title("Connect Grok")
+        page.set_description(
+            "Vital Assistant cannot sign in to a consumer Grok account. "
+            "Create a key at console.x.ai, paste it here, and it is stored in the "
+            "system keyring. Prompts are not sent to vital-os.org and are not counted."
+        )
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.set_margin_start(24)
+        box.set_margin_end(24)
+        self.provider = Gtk.DropDown.new_from_strings(["Grok (xAI)", "OpenAI-compatible", "Ollama on this computer"])
+        self.key = Gtk.PasswordEntry()
+        self.key.set_show_peek_icon(True)
+        self.key.props.placeholder_text = "API key"
+        self.base = Gtk.Entry()
+        self.base.props.placeholder_text = "Optional base URL for an OpenAI-compatible endpoint"
+        save = Gtk.Button(label="Save and test")
+        save.add_css_class("suggested-action")
+        save.connect("clicked", self._save_connection)
+        self.connect_status = Gtk.Label(label="", xalign=0, wrap=True)
+        box.append(self.provider)
+        box.append(self.key)
+        box.append(self.base)
+        box.append(save)
+        box.append(self.connect_status)
+        page.set_child(box)
+        return page
+
+    def _ask_page(self) -> Gtk.Widget:
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.set_margin_top(18)
+        box.set_margin_bottom(18)
+        box.set_margin_start(24)
+        box.set_margin_end(24)
+        title = Gtk.Label(label="Ask about this system", xalign=0)
+        title.add_css_class("title-1")
+        hint = Gtk.Label(
+            label="You get a command and a short explanation. Nothing runs until you confirm in the terminal, or press Run here.",
+            xalign=0,
+            wrap=True,
+        )
+        hint.add_css_class("dim-label")
+        self.question = Gtk.Entry()
+        self.question.props.placeholder_text = "How do I delete an empty folder?"
+        self.question.connect("activate", lambda *_a: self._ask())
+        row = Gtk.Box(spacing=12)
+        ask = Gtk.Button(label="Ask")
+        ask.add_css_class("suggested-action")
+        ask.connect("clicked", lambda *_a: self._ask())
+        run = Gtk.Button(label="Run")
+        run.connect("clicked", lambda *_a: self._run())
+        connect = Gtk.Button(label="Connection")
+        connect.connect("clicked", lambda *_a: self.stack.set_visible_child_name("connect"))
+        row.append(ask)
+        row.append(run)
+        row.append(connect)
+        self.progress = Gtk.ProgressBar()
+        self.progress.set_visible(False)
+        self.progress.add_css_class("osd")
+        self.answer = Gtk.Label(label="", xalign=0, wrap=True, selectable=True)
+        self.answer.set_vexpand(True)
+        box.append(title)
+        box.append(hint)
+        box.append(self.question)
+        box.append(row)
+        box.append(self.progress)
+        box.append(self.answer)
+        return box
+
+    def _selected_provider(self) -> str:
+        text = self.provider.get_selected_item().get_string() if self.provider.get_selected_item() else "Grok (xAI)"
+        if text.startswith("Ollama"):
+            return "ollama"
+        if text.startswith("OpenAI"):
+            return "openai"
+        return "grok"
+
+    def _save_connection(self, _button: Gtk.Button) -> None:
+        provider = self._selected_provider()
+        secret = self.key.get_text().strip()
+        self.settings.provider = provider
+        base = self.base.get_text().strip()
+        if base:
+            self.settings.base_url = base
+        try:
+            if provider != "ollama":
+                if not secret:
+                    self.connect_status.set_text("Paste a key first. Nothing was stored.")
+                    return
+                account = "grok" if provider == "grok" else "openai"
+                keystore_for(Settings(provider=provider)).store(account, secret)
+            save_user_settings(self.settings)
+        except AssistantError as exc:
+            self.connect_status.set_text(str(exc))
+            return
+        self.key.set_text("")
+        self.connect_status.set_text("Saved in the keyring.")
+        self.stack.set_visible_child_name("ask")
+
+    def _ask(self) -> None:
+        if self._busy:
+            return
+        question = self.question.get_text().strip()
+        if not question:
+            return
+        self._busy = True
+        self.progress.set_visible(True)
+        self.progress.set_fraction(0.2)
+        if animations_on():
+            GLib.timeout_add(120, self._pulse)
+
+        def work() -> bool:
+            try:
+                suggestion = suggest(question, self.settings, keystore_for(self.settings))
+            except AssistantError as exc:
+                self.answer.set_text(str(exc))
+                self._suggestion = None
+            else:
+                self._suggestion = suggestion
+                text = suggestion.command or "No command."
+                if suggestion.explanation:
+                    text += "\n\n" + suggestion.explanation
+                if suggestion.risk:
+                    text += f"\n\nWarning: this looks like {suggestion.risk}. Run asks you to confirm."
+                self.answer.set_text(text)
+            self._busy = False
+            self.progress.set_visible(False)
+            return False
+
+        GLib.idle_add(work)
+
+    def _pulse(self) -> bool:
+        if not self._busy:
+            return False
+        self.progress.pulse()
+        return True
+
+    def _run(self) -> None:
+        suggestion = getattr(self, "_suggestion", None)
+        if suggestion is None or not suggestion.command:
+            self.answer.set_text("Ask first. Nothing runs on its own.")
+            return
+        if suggestion.dangerous:
+            self.answer.set_text(
+                self.answer.get_text()
+                + "\n\nThis command is dangerous. Run it from the terminal with vital ask, "
+                "and type the command or yes."
+            )
+            return
+        dialog = Adw.AlertDialog(
+            heading="Run this command?",
+            body=suggestion.command + "\n\nIt runs only if you choose Run.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("run", "Run")
+        dialog.set_response_appearance("run", Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response("cancel")
+        dialog.set_close_response("cancel")
+
+        def respond(_dialog: Adw.AlertDialog, response: str) -> None:
+            if response != "run":
+                return
+            from vital_assistant import execute
+
+            code = execute(suggestion.command)
+            self.answer.set_text(self.answer.get_text() + f"\n\nExited {code}.")
+
+        dialog.connect("response", respond)
+        dialog.present(self)
+
+
+class AssistantApp(Adw.Application):
+    def __init__(self) -> None:
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.FLAGS_NONE)
+
+    def do_activate(self) -> None:
+        window = AssistantWindow(self)
+        window.present()
+        shot = os.environ.get("VITAL_ASSISTANT_SHOT", "")
+        if shot:
+            GLib.timeout_add(400, self._save, window, shot)
+
+    def _save(self, window: AssistantWindow, path: str) -> bool:
+        width = window.get_width()
+        height = window.get_height()
+        if width < 100 or height < 100:
+            return True
+        gi.require_version("Gsk", "4.0")
+        from gi.repository import Gsk
+
+        paintable = Gtk.WidgetPaintable.new(window)
+        snapshot = Gtk.Snapshot()
+        paintable.snapshot(snapshot, width, height)
+        node = snapshot.to_node()
+        if node is None:
+            return True
+        native = window.get_native()
+        renderer = native.get_renderer() if native is not None and hasattr(native, "get_renderer") else None
+        if renderer is None:
+            renderer = Gsk.CairoRenderer.new()
+            surface = native.get_surface() if native is not None else None
+            if not renderer.realize(surface):
+                return True
+        renderer.render_texture(node, None).save_to_png(path)
+        window.close()
+        return False
+
+
+def main() -> int:
+    Adw.init()
+    app = AssistantApp()
+    return app.run(sys.argv)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

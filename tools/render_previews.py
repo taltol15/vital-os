@@ -27,6 +27,11 @@ CHAMPAGNE = (198, 165, 106, 255)
 MUTED = (138, 132, 120, 255)
 
 
+def os_version() -> str:
+    text = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    return text or "0.2.0"
+
+
 def die(message: str) -> None:
     print(f"render_previews: {message}", file=sys.stderr)
     raise SystemExit(1)
@@ -130,7 +135,7 @@ def compose_desktop(wallpaper: Image.Image, symbol: Image.Image, dest: Path) -> 
     draw.text((win_x + (win_w - (tb[2] - tb[0])) / 2, win_y + 190), title, font=title_font, fill=IVORY)
     lines = [
         "A quiet desktop. Graphite, ivory, champagne.",
-        "Version 0.1.0  ·  based on Ubuntu 24.04 LTS",
+        f"Version {os_version()}  ·  based on Ubuntu 24.04 LTS",
     ]
     y = win_y + 260
     for line in lines:
@@ -162,7 +167,7 @@ def compose_gdm(wallpaper: Image.Image, symbol: Image.Image, dest: Path) -> None
     field = (x + 48, y + 220, x + card_w - 48, y + 268)
     draw.rounded_rectangle(field, radius=12, fill=(7, 8, 11, 180), outline=CHAMPAGNE, width=1)
     draw.text((field[0] + 16, field[1] + 12), "Password", font=small, fill=MUTED)
-    banner = "Vital OS 0.1.0"
+    banner = f"Vital OS {os_version()}"
     bb = draw.textbbox((0, 0), banner, font=small)
     draw.text((width / 2 - (bb[2] - bb[0]) / 2, y + card_h - 48), banner, font=small, fill=CHAMPAGNE)
     image.convert("RGB").save(dest, "PNG", optimize=True)

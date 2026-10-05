@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -38,6 +39,9 @@ def materialize(source: dict) -> dict:
 
 
 def build() -> dict:
+    deb_builder = ROOT.parent / "apps" / "vital-assistant" / "build_deb.py"
+    if deb_builder.is_file():
+        subprocess.run([sys.executable, str(deb_builder)], check=True)
     items = []
     for path in sorted(SOURCES.glob("*.json")):
         items.append(materialize(json.loads(path.read_text(encoding="utf-8"))))
