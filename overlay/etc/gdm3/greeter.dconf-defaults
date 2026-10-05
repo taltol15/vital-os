@@ -4,6 +4,7 @@
 gtk-theme='Adwaita-dark'
 icon-theme='Papirus-Dark'
 cursor-theme='Adwaita'
+cursor-size=24
 font-name='Inter 11'
 color-scheme='prefer-dark'
 
@@ -17,4 +18,4 @@ secondary-color='#07080B'
 [org/gnome/login-screen]
 logo='/usr/share/pixmaps/vitalos-logo.png'
 banner-message-enable=true
-banner-message-text='Vital OS 0.1.0'
+banner-message-text='Vital OS @VERSION@'

@@ -150,6 +150,24 @@ def apply_appearance(mode: str, accent_key: str) -> None:
     set_string("org.gnome.desktop.interface", "font-name", "Inter 11")
 
 
+def animations_enabled() -> bool:
+    value = get_bool("org.gnome.desktop.interface", "enable-animations")
+    if value is None:
+        return True
+    return value
+
+
+def open_assistant() -> None:
+    candidates = [
+        Path("/usr/bin/vital-assistant"),
+        Path(__file__).resolve().parents[1] / "vital-assistant" / "vital-assistant",
+    ]
+    for path in candidates:
+        if path.is_file():
+            subprocess.Popen([str(path)], start_new_session=True)
+            return
+
+
 def open_marketplace() -> None:
     candidates = [
         Path("/usr/bin/vital-marketplace"),
@@ -240,7 +258,7 @@ class WelcomeWindow(Adw.ApplicationWindow):
 
         self._stack = Gtk.Stack()
         self._stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        self._stack.set_transition_duration(220)
+        self._stack.set_transition_duration(220 if animations_enabled() else 0)
         self._stack.set_hhomogeneous(True)
         self._stack.set_vhomogeneous(True)
         self._stack.set_hexpand(True)
@@ -483,6 +501,15 @@ class WelcomeWindow(Adw.ApplicationWindow):
         market_button.connect("clicked", lambda _button: open_marketplace())
         market.add_suffix(market_button)
         group.add(market)
+        assistant = Adw.ActionRow(
+            title="Vital Assistant",
+            subtitle="Ask for a command. It runs only after you confirm. Super+Shift+A.",
+        )
+        assistant_button = Gtk.Button(label="Open")
+        assistant_button.set_valign(Gtk.Align.CENTER)
+        assistant_button.connect("clicked", lambda _button: open_assistant())
+        assistant.add_suffix(assistant_button)
+        group.add(assistant)
         for title, subtitle, desktop_id in CURATED:
             row = Adw.ActionRow(title=title, subtitle=subtitle)
             button = Gtk.Button(label="Open")

@@ -30,6 +30,15 @@
 @define-color theme_unfocused_selected_bg_color __ACCENT__;
 @define-color theme_unfocused_selected_fg_color __ACCENT_FG__;
 
+.card {
+  border-radius: 16px;
+}
+
+button {
+  border-radius: 10px;
+  transition: background-color 160ms ease;
+}
+
 window, dialog, popover, .background {
   background-color: @window_bg_color;
   color: @window_fg_color;

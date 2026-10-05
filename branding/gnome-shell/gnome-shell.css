@@ -331,3 +331,14 @@ stage {
 StEntry, StButton, StLabel {
   color: #f3eee4;
 }
+
+.unlock-dialog-clock-time,
+.login-dialog-clock-time {
+  font-weight: 500;
+  color: #f3eee4;
+}
+
+.unlock-dialog-clock-date,
+.login-dialog-clock-date {
+  color: #c6a56a;
+}

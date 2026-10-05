@@ -56,6 +56,10 @@ required=(
     apps/vital-telemetry/vital-telemetry
     apps/vital-telemetry/vital-telemetry-ctl
     apps/vital-telemetry/vital_telemetry.py
+    apps/vital-assistant/vital
+    apps/vital-assistant/vital-assistant
+    apps/vital-assistant/vital_assistant.py
+    apps/vital-assistant/build_deb.py
     PRIVACY.md
     overlay/usr/share/applications/vital-marketplace.desktop
     overlay/etc/casper.conf
@@ -87,8 +91,22 @@ fi
 if grep -q '^eject$' config/packages.live.list config/calamares/modules/packages.conf; then
     bad "eject must stay installed; nautilus depends on it"
 fi
-if ! grep -q '^0.1.1$' VERSION; then
-    bad "VERSION is not 0.1.1"
+if ! grep -q '^0.2.0$' VERSION; then
+    bad "VERSION is not 0.2.0"
+fi
+for stamped in overlay/etc/issue overlay/etc/issue.net overlay/etc/motd overlay/etc/vitalos-release overlay/etc/gdm3/greeter.dconf-defaults branding/grub/theme.txt config/calamares/branding/vitalos/branding.desc config/calamares/branding/vitalos/show.qml; do
+    if ! grep -q '@VERSION@' "$stamped"; then
+        bad "${stamped} must take its version from @VERSION@"
+    fi
+    if grep -q '0\.1\.0' "$stamped"; then
+        bad "${stamped} still hardcodes 0.1.0"
+    fi
+done
+if ! grep -q 'SetDisplayPasswordFunction' branding/plymouth/vitalos.script; then
+    bad "Plymouth theme must style the disk-unlock prompt"
+fi
+if ! grep -q 'vital-assistant' marketplace/catalog/sources/vital-assistant.json; then
+    bad "Marketplace catalog is missing vital-assistant"
 fi
 
 while IFS= read -r pkg; do
@@ -109,6 +127,8 @@ scripts=(
     overlay/usr/libexec/vitalos-maybe-install
     overlay/usr/libexec/vitalos-install-check
     overlay/usr/libexec/vitalos-install-bootloader
+    apps/vital-assistant/profile.sh
+    apps/vital-assistant/hook.bash
     overlay/etc/grub.d/06_vital_font
     overlay/usr/share/initramfs-tools/scripts/casper-bottom/26vitalos_desktop
 )
@@ -132,6 +152,10 @@ python3 -m py_compile \
     apps/vital-telemetry/vital-telemetry \
     apps/vital-telemetry/vital-telemetry-ctl \
     apps/vital-telemetry/vital_telemetry.py \
+    apps/vital-assistant/vital \
+    apps/vital-assistant/vital-assistant \
+    apps/vital-assistant/vital_assistant.py \
+    apps/vital-assistant/build_deb.py \
     tools/render_previews.py \
     config/calamares/runtime/mount/main.py
 
@@ -142,6 +166,11 @@ python3 marketplace/tools/build_catalog.py --check || bad "catalog.json does not
     cd apps/vital-welcome
     python3 -m unittest test_identity.py
 ) || bad "welcome identity tests failed"
+
+(
+    cd apps/vital-assistant
+    python3 -m unittest tests.test_assistant
+) || bad "assistant tests failed"
 
 if python3 -c "import fastapi, jsonschema, cryptography, pytest" >/dev/null 2>&1; then
     note "running marketplace tests"

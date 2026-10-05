@@ -7,10 +7,10 @@ windowSize: 800px,560px
 strings:
     productName:         Vital OS
     shortProductName:    Vital
-    version:             0.1.1
-    shortVersion:        0.1.1
-    versionedName:       Vital OS 0.1.1
-    shortVersionedName:  Vital OS 0.1.1
+    version:             @VERSION@
+    shortVersion:        @VERSION@
+    versionedName:       Vital OS @VERSION@
+    shortVersionedName:  Vital OS @VERSION@
     bootloaderEntryName: Vital OS
     productUrl:          https://github.com/taltol15/vital-os
     supportUrl:          https://github.com/taltol15/vital-os/issues

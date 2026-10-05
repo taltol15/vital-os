@@ -92,6 +92,30 @@
       "checksum": "78cce8a077ed4754bd1994a48ed9cb56109f0e26d7a5e5094923c77dc361e56f"
     },
     {
+      "id": "vital-assistant",
+      "name": "Vital Assistant",
+      "summary": "Ask for a command. It runs only after you confirm.",
+      "description": "Vital Assistant answers questions about this system from the terminal (vital ask) and from a window opened with Super+Shift+A. The default provider is xAI Grok using a key you create at console.x.ai. OpenAI-compatible endpoints and a local Ollama install are also supported. The key is stored in the system keyring and is never written to a file or sent to vital-os.org. Prompts are not part of Vital OS telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 of the package matches, and Remove uninstalls the command, the window, the shell hook, and the shortcut.",
+      "version": "0.2.0",
+      "category": "System",
+      "publisher": "Vital OS",
+      "homepage": "https://github.com/taltol15/vital-os",
+      "license": "GPL-3.0-or-later",
+      "install": {
+        "method": "deb",
+        "package": "vital-assistant",
+        "url": "bundled://debs/vital-assistant_0.2.0_all.deb",
+        "sha256": "085262a7c3b7d850b5456741269cd02af9ed7a90bfc1786dfb49e6383337ed9d"
+      },
+      "min_os_version": "0.2.0",
+      "icon": {
+        "url": "bundled://icons/vital-assistant.svg",
+        "sha256": "c52dc654fae4b2434f1a9324685f855424b9a69ff56b67f31e8cfb9abda13626"
+      },
+      "screenshots": [],
+      "checksum": "40a93d0da2060542f49c0a33aaa98950ee020f30e651292c8895c7d1cf5c4f32"
+    },
+    {
       "id": "vital-example-note",
       "name": "Vital Example Note",
       "summary": "Example script. It prints one line and changes nothing.",

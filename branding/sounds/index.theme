@@ -1,0 +1,7 @@
+[Sound Theme]
+Name=Vital
+Inherits=freedesktop
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo

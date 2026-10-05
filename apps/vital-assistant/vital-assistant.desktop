@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Vital Assistant
+Comment=Ask Vital OS for a command. Nothing runs until you confirm.
+Exec=vital-assistant
+Icon=vital-assistant
+Terminal=false
+Categories=Utility;System;
+Keywords=assistant;help;grok;ai;
+StartupNotify=true

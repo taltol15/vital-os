@@ -32,5 +32,5 @@ terminal-font: "Inter 16"
   align = "left"
   font = "Inter 16"
   color = "#8C8578"
-  text = "Vital OS 0.1.1    ·    arrows to choose, Enter to start"
+  text = "Vital OS @VERSION@    ·    arrows to choose, Enter to start"
 }

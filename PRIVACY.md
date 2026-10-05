@@ -58,6 +58,18 @@ Uvicorn is started with `--no-access-log`. The example Caddyfile discards access
 
 The catalog, its signature, and uploaded packages are public on purpose. They are not telemetry.
 
+## Vital Assistant
+
+Vital Assistant is a separate program. It is not part of the install count above.
+
+Questions you type are sent only to the provider you choose: xAI Grok (`https://api.x.ai`), an OpenAI-compatible address you enter, or Ollama on this computer. They are not sent to vital-os.org. They are not stored by Vital OS. They are not included in telemetry.
+
+An API key is stored in the system keyring (libsecret) under the schema `org.vitalos.Assistant`. It is not written to a config file, not printed by `vital status`, and not sent anywhere except as the bearer token on the request to the provider you chose. `vital disconnect` deletes it. Removing the package does not delete a key already in your keyring; run `vital disconnect` first if you want it gone.
+
+The working directory, last command, exit code, and distro name are included only when `send_context=1` in the assistant config, or when the optional failed-command hint is on (`shell_hook=1`). Both are off by default. The failed-command hint suggests a fix and does not run it.
+
+A suggested command runs only after you confirm. `y` is enough for an ordinary command. A command that looks like `rm -rf`, `dd`, `mkfs`, `chmod -R 777`, or a similar destructive action is refused unless you type `yes` or type the command itself.
+
 ## ISO downloads
 
 The public download link is `https://vital-os.org/api/v1/downloads/iso` (also `/downloads/iso`). Each GET adds one to the download counter and redirects to `VITAL_ISO_URL` when that is set. The response sets no cookie and is marked `Cache-Control: no-store`. It does not identify the downloader.
