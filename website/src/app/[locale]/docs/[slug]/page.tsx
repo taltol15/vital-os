@@ -51,7 +51,11 @@ export default async function DocPage({ params }: { params: Promise<{ locale: st
         <article>
           <p className="scaffold">{t.docs.scaffold}</p>
           {doc.fallback ? <p className="scaffold">{t.docs.english}</p> : null}
-          <MDXRemote source={doc.body} components={{ Kbd }} />
+          <MDXRemote
+            source={doc.body}
+            components={{ Kbd }}
+            options={{ blockJS: true, blockDangerousJS: true }}
+          />
         </article>
       </div>
     </div>

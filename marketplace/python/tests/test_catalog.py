@@ -16,6 +16,7 @@ from vital_catalog import (  # noqa: E402
     catalog_payload,
     download_verified,
     item_checksum,
+    parse_public_key,
     resolve_bundled,
     sign_bytes,
     validate_catalog,
@@ -53,6 +54,26 @@ def test_bundled_path_cannot_escape(tmp_path: Path) -> None:
     except ValueError:
         return
     raise AssertionError("escaped path was accepted")
+
+
+def test_shipped_public_key_matches_production_spki() -> None:
+    """The repo file is raw base64. The production key was supplied as SPKI."""
+    import base64
+
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+    shipped = parse_public_key((ROOT / "keys" / "catalog.pub").read_text(encoding="utf-8"))
+    assert shipped == "JZQLLULlk2rNUTDDEvXm2s2k5Yddx3n41yUGUDesL+E="
+    pem = """-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAJZQLLULlk2rNUTDDEvXm2s2k5Yddx3n41yUGUDesL+E=
+-----END PUBLIC KEY-----"""
+    spki = load_pem_public_key(pem.encode("ascii"))
+    raw = base64.b64encode(spki.public_bytes(Encoding.Raw, PublicFormat.Raw)).decode("ascii")
+    assert raw == shipped
+    assert verify_catalog_signature(
+        {"format": 1, "name": "x", "signature": {"alg": "ed25519", "value": "AAAA"}},
+        shipped,
+    ) is False
 
 
 def test_signature_round_trip() -> None:

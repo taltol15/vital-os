@@ -29,7 +29,7 @@ public_key=/etc/vital/marketplace.pub
 bundled_catalog=/usr/share/vitalos/marketplace/catalog.json
 ```
 
-The app verifies the ed25519 `signature` with `/etc/vital/marketplace.pub`. If `catalog_url` is empty, the key is still the placeholder in this repository, or the server cannot be reached, it uses the bundled catalog and shows a banner that the sample is unsigned. Unsigned remote catalogs are rejected. A copy of the same public file is also installed at `/usr/share/vitalos/marketplace/catalog.pub`.
+The app verifies the ed25519 `signature` with `/etc/vital/marketplace.pub`. If `catalog_url` is empty, that file does not parse as 32 raw key bytes, or the server cannot be reached, it uses the bundled catalog and shows a banner that the sample is unsigned. Unsigned remote catalogs are rejected. `marketplace/keys/catalog.pub` is the production public key, one line of standard base64. The image build copies those same bytes to `/etc/vital/marketplace.pub` and `/usr/share/vitalos/marketplace/catalog.pub`. An image built before this file held a real key still has the old placeholder and will not accept a catalog signed with this key.
 
 Install, update, and remove go through `pkexec /usr/libexec/vital-marketplace-helper`. The polkit action is `org.vitalos.marketplace.manage`.
 
@@ -77,7 +77,7 @@ chmod 600 /etc/vital/market.key
 vital-market token create --db /var/lib/vital-market/market.db --name tal
 ```
 
-`keygen` writes an ed25519 PEM private key (mode 600) and a one-line base64 public key (mode 644). Copy that public file over `marketplace/keys/catalog.pub` in this repository and rebuild the ISO. Clients verify the catalog against the copy baked into `/etc/vital/marketplace.pub`. Until that rebuild, they keep the unsigned sample and show the banner.
+`keygen` writes an ed25519 PEM private key (mode 600) and a one-line base64 public key (mode 644). The public half that matches the production catalog server is already in `marketplace/keys/catalog.pub`. The next ISO copies it to `/etc/vital/marketplace.pub`. Clients verify the catalog against that baked-in file. Images that still have the placeholder keep the unsigned sample and show the banner.
 
 The token prints once. Open `https://vital-os.org/mgmt` and paste it. Keep an offline copy of `/etc/vital/market.key`. Do not commit it, email it, or put it in the image.
 
