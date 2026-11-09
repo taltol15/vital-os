@@ -35,6 +35,8 @@ Install, update, and remove go through `pkexec /usr/libexec/vital-marketplace-he
 
 ## Server
 
+The public host is the Next.js app in [`website/`](../website/README.md). It serves the same `/api/v1` paths and `/mgmt`. This Python service remains the reference implementation for those paths, including the package event.
+
 Python, FastAPI, and SQLite.
 
 | Endpoint | Auth | Role |
@@ -43,7 +45,7 @@ Python, FastAPI, and SQLite.
 | `GET /api/v1/public-key` | none | Raw ed25519 public key, standard base64 |
 | `GET /api/v1/artifacts/{sha256}` | none | Bytes previously uploaded by an admin |
 | `GET /api/v1/downloads/iso` | none | Adds one to the ISO download counter and redirects to `VITAL_ISO_URL` when set. No cookie |
-| `POST /api/v1/telemetry` | none | Anonymous install or heartbeat. See [PRIVACY.md](../PRIVACY.md) |
+| `POST /api/v1/telemetry` | none | Anonymous install, heartbeat, or a catalog item id after a successful install. See [PRIVACY.md](../PRIVACY.md) |
 | `POST /api/v1/admin/items` | bearer | Create an item. Invalid schema returns 422 |
 | `PUT /api/v1/admin/items/{id}` | bearer | Replace an item |
 | `DELETE /api/v1/admin/items/{id}` | bearer | Delete an item |

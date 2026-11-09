@@ -1,0 +1,15 @@
+---
+title: Marketplace
+description: How the signed catalog is fetched, and what an install method can be.
+order: 3
+---
+
+Vital Marketplace is the catalog browser in the app grid. The client configuration is `/etc/vital/marketplace.conf`. The catalog URL is `https://vital-os.org/api/v1/catalog`. The same document is also served at `/v1/catalog`.
+
+A remote catalog is accepted only with a valid ed25519 signature. The public key on an installed system is `/etc/vital/marketplace.pub`. Unsigned remote catalogs are rejected. If the URL is empty, the key is still the placeholder shipped in the source tree, or the server cannot be reached, the app uses the bundled catalog and shows a banner that the sample is unsigned.
+
+Install methods are `apt`, `flatpak`, `deb`, and `script`. A `deb` or `script` is downloaded again by the helper and refused if the SHA-256 differs. Those URLs must be `https://` or `bundled://`. Install, update, and remove go through a polkit helper, `org.vitalos.marketplace.manage`.
+
+The sample catalog lists Firefox and Celluloid as apt packages, GIMP and Inkscape from Flathub, Vital Assistant as a deb, and Vital Example Note, a script marked as an example. Icons in that catalog are original tiles.
+
+This site signs the public catalog on each read. The private key stays in the server environment.

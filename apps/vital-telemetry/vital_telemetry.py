@@ -17,6 +17,7 @@ CASPER_RE = re.compile(r"(^|\s)boot=casper(\s|$)")
 CONF_PATH = Path("/etc/vital/telemetry.conf")
 STATE_DIR = Path("/var/lib/vitalos/telemetry")
 DEFAULT_ENDPOINT = "https://vital-os.org/api/v1/telemetry"
+PACKAGE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{1,80}$")
 
 
 def conf_path() -> Path:
@@ -124,6 +125,33 @@ def prepare_event(event: str) -> dict[str, str] | None:
         "event": event,
         "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+
+
+def prepare_package_event(package_id: str) -> dict[str, str] | None:
+    """Catalog item id only, and only when the install count is turned on."""
+    if not PACKAGE_ID_RE.match(package_id):
+        return None
+    if live_session() or not enabled():
+        return None
+    from datetime import datetime, timezone
+
+    return {
+        "install_id": ensure_install_id(),
+        "os_version": os_version(),
+        "event": "package",
+        "package_id": package_id,
+        "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+
+def report_package(package_id: str) -> None:
+    payload = prepare_package_event(package_id)
+    if payload is None:
+        return
+    endpoint = read_conf().get("endpoint", "").strip()
+    if not endpoint.startswith("https://"):
+        return
+    post_event(payload, endpoint)
 
 
 def post_event(payload: dict[str, str], endpoint: str, timeout: float = 5) -> None:

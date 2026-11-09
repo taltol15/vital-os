@@ -1,0 +1,13 @@
+---
+title: Getting started
+description: What Vital OS is, and the first things to know before you boot it.
+order: 1
+---
+
+Vital OS 0.2.1 is a personal desktop image based on Ubuntu 24.04 LTS (noble). The interface is GNOME. The palette is graphite, ivory, and champagne, and the artwork is original. It is not a Canonical product and not an NVIDIA product.
+
+`/etc/os-release` identifies the system as Vital OS. `ID_LIKE` stays `ubuntu debian`, and `VERSION_CODENAME` stays `noble`, so Ubuntu-oriented packages still match. The version string comes from the `VERSION` file in the source tree.
+
+The ISO is a hybrid live and install image for BIOS and UEFI. Secure Boot is not supported. The GRUB menu offers Try, Install, and safe graphics. Try signs in as `vital` with no password. The installed user sets their own password.
+
+The downloadable images and their SHA-256 checksums are on the downloads page. The source is [github.com/taltol15/vital-os](https://github.com/taltol15/vital-os).
