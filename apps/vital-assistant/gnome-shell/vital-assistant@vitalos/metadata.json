@@ -1,0 +1,9 @@
+{
+  "uuid": "vital-assistant@vitalos",
+  "name": "Vital Assistant",
+  "description": "Opens the Vital Assistant overlay from a shortcut and from Quick Settings.",
+  "shell-version": ["46"],
+  "url": "https://github.com/taltol15/vital-os",
+  "version": 1,
+  "settings-schema": "org.gnome.shell.extensions.vital-assistant"
+}

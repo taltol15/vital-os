@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Privileged package changes for Vital Assistant.
+
+pkexec is the only way in. The command is one of:
+  install-apt NAME
+  remove-apt NAME
+  install-flatpak ID
+  remove-flatpak ID
+  install-marketplace ID
+  remove-marketplace ID
+
+The name is checked again here. Nothing is passed to a shell.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+for extra in (Path("/usr/lib/vitalos"), Path(__file__).resolve().parent):
+    if extra.is_dir() and str(extra) not in sys.path:
+        sys.path.insert(0, str(extra))
+
+from vital_actions import ActionError, plan_action  # noqa: E402
+
+
+def fail(message: str) -> None:
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    dry = os.environ.get("VITAL_ASSISTANT_HELPER_DRY_RUN") == "1"
+    if os.geteuid() != 0 and not dry:
+        fail("This helper must run as root through polkit.")
+    if len(args) != 2:
+        fail("Usage: vital-assistant-helper install-apt|remove-apt|install-flatpak|remove-flatpak|install-marketplace|remove-marketplace NAME")
+    command, name = args
+    mapping = {
+        "install-apt": ("apps.install", "apt"),
+        "remove-apt": ("apps.remove", "apt"),
+        "install-flatpak": ("apps.install", "flatpak"),
+        "remove-flatpak": ("apps.remove", "flatpak"),
+        "install-marketplace": ("apps.install", "marketplace"),
+        "remove-marketplace": ("apps.remove", "marketplace"),
+    }
+    if command not in mapping:
+        fail("That command is not allowlisted.")
+    action, source = mapping[command]
+    try:
+        plan = plan_action(action, {"source": source, "name": name})
+    except ActionError as exc:
+        fail(str(exc))
+    if plan.argv[2:] != [command, name]:
+        fail("Refusing a command that does not match the allowlist.")
+    if dry:
+        print(json.dumps({"argv": plan.argv[2:]}))
+        return 0
+    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+    if source == "apt":
+        verb = "remove" if command.startswith("remove") else "install"
+        completed = subprocess.run(["apt-get", verb, "-y", "--", name], check=False)
+        return completed.returncode
+    if source == "flatpak":
+        if command.startswith("remove"):
+            completed = subprocess.run(["flatpak", "uninstall", "-y", "--noninteractive", name], check=False)
+        else:
+            completed = subprocess.run(
+                ["flatpak", "install", "-y", "--noninteractive", "flathub", name],
+                check=False,
+            )
+        return completed.returncode
+    request = {"action": "remove" if command.startswith("remove") else "install", "id": name, "confirmed": True}
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as handle:
+        json.dump(request, handle)
+        path = handle.name
+    try:
+        completed = subprocess.run(["/usr/libexec/vital-marketplace-helper", path], check=False)
+    finally:
+        Path(path).unlink(missing_ok=True)
+    return completed.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

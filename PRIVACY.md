@@ -62,13 +62,17 @@ The catalog, its signature, and uploaded packages are public on purpose. They ar
 
 Vital Assistant is a separate program. It is not part of the install count above.
 
-Questions you type are sent only to the provider you choose: xAI Grok (`https://api.x.ai`), an OpenAI-compatible address you enter, or Ollama on this computer. They are not sent to vital-os.org. They are not stored by Vital OS. They are not included in telemetry.
+Questions you type are sent only to the provider that answers that request: xAI Grok (`https://api.x.ai`), an OpenAI-compatible address you enter, Ollama on this computer, or the optional local llama.cpp model on this computer. They are not sent to vital-os.org. They are not included in telemetry. The overlay and the terminal show the provider name for each reply. If the Grok key is missing or the network request fails, and a local model is installed, the local model answers instead.
 
-An API key is stored in the system keyring (libsecret) under the schema `org.vitalos.Assistant`. It is not written to a config file, not printed by `vital status`, and not sent anywhere except as the bearer token on the request to the provider you chose. `vital disconnect` deletes it. Removing the package does not delete a key already in your keyring; run `vital disconnect` first if you want it gone.
+An API key is stored in the system keyring (libsecret) under the schema `org.vitalos.Assistant`. It is not written to a config file, not printed by `vital status`, and not sent anywhere except as the bearer token on the request to the provider you chose. The action log redacts bearer tokens and key-shaped strings. `vital disconnect` deletes the key. Removing the package does not delete a key already in your keyring; run `vital disconnect` first if you want it gone.
 
-The working directory, last command, exit code, and distro name are included only when `send_context=1` in the assistant config, or when the optional failed-command hint is on (`shell_hook=1`). Both are off by default. The failed-command hint suggests a fix and does not run it.
+A local history of questions and answers is stored only on this computer, in `~/.local/state/vitalos/assistant/history.jsonl` (mode 0600). It is not uploaded. Settings can erase it. `history_enabled=0` stops new entries. The action log next to it records allowlisted system actions (what was asked, whether you approved it, the argv, and the result). It does not record the API key.
 
-A suggested command runs only after you confirm. `y` is enough for an ordinary command. A command that looks like `rm -rf`, `dd`, `mkfs`, `chmod -R 777`, or a similar destructive action is refused unless you type `yes` or type the command itself.
+The working directory, last command, exit code, stderr, and distro name are included only when `send_context=1`, when you run `vital explain`, or when the optional failed-command hint is on (`shell_hook=1`). The hint is off by default. It suggests a fix and does not run it. Stderr is copied into the runtime directory only while the hint is on.
+
+Files, the active window title and app, the clipboard, and a screenshot are off by default. Settings only reveals the controls. Each question starts with them off, and turning one on is the consent for that question. The window title is read from the GNOME extension at that moment; focus changes are not saved. A screenshot uses the desktop portal, which shows its own dialog. If any of those four is included and you have not allowed a remote send, the request stays on the local model when one is installed, and is refused when one is not. Nothing is sent in that refusal. Key files (`id_rsa`, `.pem`, `.ssh`) are not attached. The local Qwen model is text-only, so it does not receive screenshot pixels.
+
+A suggested command runs only after you confirm. `y` is enough for an ordinary command. A command that looks like `rm -rf`, `dd`, `mkfs`, `chmod -R 777`, or a similar destructive action is refused unless you type `yes` or type the command itself. Text piped into `vital ask` is treated as context and is never the confirmation. Allowlisted system actions that change the computer show the exact command and wait. Privileged installs go through polkit. There is no root shell.
 
 ## ISO downloads
 

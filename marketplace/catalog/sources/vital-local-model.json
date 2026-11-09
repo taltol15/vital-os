@@ -1,0 +1,17 @@
+{
+  "id": "vital-local-model",
+  "name": "Vital Local Model",
+  "summary": "Offline Qwen3 0.6B and llama.cpp for Vital Assistant.",
+  "description": "Optional local provider for Vital Assistant. The script downloads two pinned files and checks SHA-256 before it installs them. The model is the official Qwen/Qwen3-0.6B-GGUF file Qwen3-0.6B-Q8_0.gguf (639446688 bytes, SHA-256 9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031), Apache-2.0. On 2026-11-09 that repository published this Q8_0 file and no Q4_K_M file. The runtime is llama.cpp b12212 (MIT): llama-b12212-bin-ubuntu-x64.tar.gz (SHA-256 a9b987738e6724b116980de8f5e15a901a3086587c3d2328533d77582e25ad5b). A Vulkan build (SHA-256 1f4c94a3a38b52ed632924aba9cdfa736caaa3ea7812b62ca1d8b84917eb3e15) is added only when /dev/dri/renderD128 exists. CPU is the default. The assistant listens on 127.0.0.1. This does not collect telemetry.",
+  "icon_file": "icons/vital-local-model.svg",
+  "version": "qwen3-0.6b-q8-b12212",
+  "category": "System",
+  "publisher": "Vital OS",
+  "homepage": "https://github.com/taltol15/vital-os",
+  "license": "Apache-2.0 AND MIT",
+  "install": {
+    "method": "script",
+    "file": "examples/vital-local-model.sh"
+  },
+  "min_os_version": "0.2.0"
+}

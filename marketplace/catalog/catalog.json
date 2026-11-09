@@ -94,9 +94,9 @@
     {
       "id": "vital-assistant",
       "name": "Vital Assistant",
-      "summary": "Ask for a command. It runs only after you confirm.",
-      "description": "Vital Assistant answers questions about this system from the terminal (vital ask) and from a window opened with Super+Shift+A. The default provider is xAI Grok using a key you create at console.x.ai. OpenAI-compatible endpoints and a local Ollama install are also supported. The key is stored in the system keyring and is never written to a file or sent to vital-os.org. Prompts are not part of Vital OS telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 of the package matches, and Remove uninstalls the command, the window, the shell hook, and the shortcut.",
-      "version": "0.2.1",
+      "summary": "System-wide assistant. Nothing changes until you confirm.",
+      "description": "Vital Assistant 0.3.0 is one per-user daemon shared by the terminal, a Super+Space overlay, and Settings. The default provider is xAI Grok with your own key from console.x.ai, stored in the system keyring and never written to a file or sent to vital-os.org. OpenAI-compatible endpoints, Ollama, and an optional local llama.cpp model are also supported. If the network is down or no key is stored, a ready local model answers instead, and the reply says which provider spoke. System actions are an allowlist (GNOME settings, open a known app, search or install through Marketplace, apt, or Flatpak, and disk, update, battery, and network status). State-changing actions show the exact command and wait. Privileged installs go through polkit. There is no root shell. Context from files, the active window, the clipboard, or a screenshot is off until you turn it on for that question. Hebrew and English are included. Prompts are not telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 matches.",
+      "version": "0.3.0",
       "category": "System",
       "publisher": "Vital OS",
       "homepage": "https://github.com/taltol15/vital-os",
@@ -104,8 +104,8 @@
       "install": {
         "method": "deb",
         "package": "vital-assistant",
-        "url": "bundled://debs/vital-assistant_0.2.1_all.deb",
-        "sha256": "18ba1b441ef492a5ff87c8148b1178ba6f837f79cf91175f5b2df3018d43b241"
+        "url": "bundled://debs/vital-assistant_0.3.0_all.deb",
+        "sha256": "19a69a52912efcb5ce638506422cc4a42d6fa410bd12cfa45f49d808c95baa40"
       },
       "min_os_version": "0.2.0",
       "icon": {
@@ -113,7 +113,7 @@
         "sha256": "d8fb47236d989861e176da6f150e78dc1d98824efc54ee6903f9a0499e5c2e0d"
       },
       "screenshots": [],
-      "checksum": "c3e14ef2215c226d200291b6e57b2c3858c34e8875443e666c90b75b2c7d53fd"
+      "checksum": "0b909b3339c2d99357159f8a4aa11d7bacb00bf760b635fd9e8b4efe3acf3f9f"
     },
     {
       "id": "vital-example-note",
@@ -138,6 +138,29 @@
       },
       "screenshots": [],
       "checksum": "1eef10798cb62c6cca8d26b48b024328f7080f1ea5e9426abf002edeac0468ce"
+    },
+    {
+      "id": "vital-local-model",
+      "name": "Vital Local Model",
+      "summary": "Offline Qwen3 0.6B and llama.cpp for Vital Assistant.",
+      "description": "Optional local provider for Vital Assistant. The script downloads two pinned files and checks SHA-256 before it installs them. The model is the official Qwen/Qwen3-0.6B-GGUF file Qwen3-0.6B-Q8_0.gguf (639446688 bytes, SHA-256 9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031), Apache-2.0. On 2026-11-09 that repository published this Q8_0 file and no Q4_K_M file. The runtime is llama.cpp b12212 (MIT): llama-b12212-bin-ubuntu-x64.tar.gz (SHA-256 a9b987738e6724b116980de8f5e15a901a3086587c3d2328533d77582e25ad5b). A Vulkan build (SHA-256 1f4c94a3a38b52ed632924aba9cdfa736caaa3ea7812b62ca1d8b84917eb3e15) is added only when /dev/dri/renderD128 exists. CPU is the default. The assistant listens on 127.0.0.1. This does not collect telemetry.",
+      "version": "qwen3-0.6b-q8-b12212",
+      "category": "System",
+      "publisher": "Vital OS",
+      "homepage": "https://github.com/taltol15/vital-os",
+      "license": "Apache-2.0 AND MIT",
+      "install": {
+        "method": "script",
+        "url": "bundled://examples/vital-local-model.sh",
+        "sha256": "ad164b1268784408606705fa747b562eb6bfd942fe54c6eb6e6b84048004614b"
+      },
+      "min_os_version": "0.2.0",
+      "icon": {
+        "url": "bundled://icons/vital-local-model.svg",
+        "sha256": "f1841add1a5934cdf804eac9027e3d49040a2dd94d8d19652c7f705ec14e449a"
+      },
+      "screenshots": [],
+      "checksum": "39e114551917261e4c013dda7110aad0e7c98921a95164c0b20f88fd3165ea34"
     }
   ]
 }
