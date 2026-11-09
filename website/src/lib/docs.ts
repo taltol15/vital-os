@@ -23,30 +23,27 @@ function splitFrontmatter(raw: string): { data: Record<string, string>; body: st
   return { data, body: raw.slice(end + 5) };
 }
 
-function fileFor(locale: string, slug: string): { file: string; fallback: boolean } | null {
-  const localized = path.join(process.cwd(), "content/docs", locale, `${slug}.mdx`);
-  const english = path.join(process.cwd(), "content/docs/en", `${slug}.mdx`);
-  if (fs.existsSync(localized)) return { file: localized, fallback: false };
-  if (fs.existsSync(english)) return { file: english, fallback: locale !== "en" };
-  return null;
+function docPath(locale: string, slug: string): string {
+  return path.join(process.cwd(), "content", "docs", locale, `${slug}.mdx`);
 }
 
 export function readDoc(locale: string, slug: string): DocPage | null {
-  const found = fileFor(locale, slug);
-  if (!found) return null;
-  const { data, body } = splitFrontmatter(fs.readFileSync(found.file, "utf8"));
+  const folder = locale !== "en" && fs.existsSync(docPath(locale, slug)) ? locale : "en";
+  const file = docPath(folder, slug);
+  if (!fs.existsSync(file)) return null;
+  const { data, body } = splitFrontmatter(fs.readFileSync(docPath(folder, slug), "utf8"));
   return {
     slug,
     title: data.title || slug,
     description: data.description || "",
     order: Number(data.order || 0),
     body,
-    fallback: found.fallback,
+    fallback: folder === "en" && locale !== "en",
   };
 }
 
 export function listDocs(locale: string): DocPage[] {
-  const dir = path.join(process.cwd(), "content/docs/en");
+  const dir = path.join(process.cwd(), "content", "docs", "en");
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)

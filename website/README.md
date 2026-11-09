@@ -69,13 +69,9 @@ Turn off public sign-ups in the Auth settings as well. The site never calls sign
 
 ## Signing key
 
-On a trusted machine:
+`marketplace/keys/catalog.pub` is the production public key, as the one line of standard base64 the desktop verifier accepts. `VITAL_CATALOG_SIGNING_KEY` must be the matching ed25519 private PEM. A different private key makes a new image reject the catalog.
 
-```bash
-openssl genpkey -algorithm ED25519 -out market.pem
-```
-
-Put the PEM in `VITAL_CATALOG_SIGNING_KEY`. Derive the public key the desktop expects (one line of standard base64, 32 raw bytes) and replace `marketplace/keys/catalog.pub`, then build a new ISO. Machines that still have the placeholder key keep the unsigned sample catalog. There is no way to push a new public key to a system that is already installed.
+Machines installed from v0.2.1 still have the old placeholder file. They will not trust a catalog signed with this key. There is no way to push the new public key to a system that is already installed. The next ISO is what carries it.
 
 `GET /api/v1/public-key` returns the key this server is using. The desktop does not fetch that URL. It uses the file baked into the image.
 

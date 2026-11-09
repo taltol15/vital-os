@@ -1,7 +1,5 @@
-# No production signing key is shipped.
-# Generate one on the catalog server. The private key stays there, mode 600:
-#   vital-market keygen --private /etc/vital/market.key --public /etc/vital/marketplace.pub
-# Copy the public file over this placeholder (same bytes) and rebuild the
-# ISO so clients trust https://vital-os.org/api/v1/catalog. Until a real
-# public key is here, the Marketplace app uses the bundled unsigned sample
-# and refuses unsigned remote catalogs. Do not commit the private key.
+# Production Vital Marketplace catalog public key.
+# Ed25519 raw key, standard base64, 32 bytes. The desktop verifier
+# accepts only this form. An SPKI PEM is rejected because it is not
+# 32 bytes. The private key is not in this repository.
+JZQLLULlk2rNUTDDEvXm2s2k5Yddx3n41yUGUDesL+E=
