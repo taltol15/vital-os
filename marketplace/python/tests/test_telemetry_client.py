@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "apps" / "vital-telemetry"))
 
-from vital_telemetry import enabled, main, prepare_event, write_enabled  # noqa: E402
+from vital_telemetry import enabled, main, prepare_event, prepare_package_event, write_enabled  # noqa: E402
 
 
 def _env(tmp_path: Path, monkeypatch, *, enabled_flag: str = "true", cmdline: str = "quiet") -> None:
@@ -55,6 +55,18 @@ def test_offline_failure_is_silent(tmp_path: Path, monkeypatch) -> None:
     conf.write_text("enabled=true\nendpoint=https://127.0.0.1:9/api/v1/telemetry\n", encoding="utf-8")
     assert main(["install"]) == 0
     assert not (tmp_path / "state" / "install_sent").exists()
+
+
+def test_package_event_is_only_the_catalog_id(tmp_path: Path, monkeypatch) -> None:
+    _env(tmp_path, monkeypatch)
+    payload = prepare_package_event("gimp")
+    assert payload is not None
+    assert set(payload) == {"install_id", "os_version", "event", "package_id", "ts"}
+    assert payload["event"] == "package"
+    assert payload["package_id"] == "gimp"
+    assert prepare_package_event("../etc/passwd") is None
+    _env(tmp_path, monkeypatch, enabled_flag="false")
+    assert prepare_package_event("gimp") is None
 
 
 def test_switch_rewrites_conf(tmp_path: Path, monkeypatch) -> None:

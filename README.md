@@ -121,6 +121,7 @@ Give the guest at least 3 GB of RAM. The GRUB menu offers Try, Install, and safe
 | `apps/vital-marketplace/` | Catalog browser and privileged helper |
 | `marketplace/` | Catalog schema, sample catalog, API, CLI, and deploy files |
 | `docs/screenshots/` | Rendered previews |
+| `website/` | vital-os.org: Next.js site, signed catalog, and the anonymous count |
 | `.github/workflows/build-iso.yml` | Check, build, release |
 
 ## Previews

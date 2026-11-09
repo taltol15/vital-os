@@ -1,0 +1,13 @@
+---
+title: AI assistant
+description: What Vital Assistant does, and what it refuses to do on its own.
+order: 4
+---
+
+Vital Assistant is installed with the image. Marketplace can remove it. <Kbd>Super+Shift+A</Kbd> opens the window. Super+Space stays the keyboard-layout switch.
+
+In a terminal, `vital ask "question"` prints a command and a short explanation. `ask` and `??` are the short forms. Nothing runs until you confirm. A plain `y` is enough for an ordinary command. A command that looks like `rm -rf`, `dd`, `mkfs`, `chmod -R 777`, or a similar destructive action is refused in the window. In the terminal it runs only if you type `yes` or type the command itself.
+
+The first provider is xAI Grok, using a key from console.x.ai. OpenAI-compatible endpoints and local Ollama are also supported. The key is stored in the system keyring under `org.vitalos.Assistant`. It is not written to the config file and not sent to vital-os.org. `vital disconnect` deletes it.
+
+`send_context` and `shell_hook` are off by default. Context, when you turn it on, is the working directory, the last command, the exit code, and the distro name. The failed-command hint suggests a fix and does not run it. Questions are not part of the install count.

@@ -452,6 +452,7 @@ class MarketWindow(Adw.ApplicationWindow):
 
     def _start(self, item: dict, action: str, confirmed: bool) -> None:
         self._busy = True
+        self._telemetry_item = item["id"] if action in {"install", "update"} else ""
         self.progress.set_visible(True)
         self.progress.set_fraction(0.05)
         self.status.set_label("Waiting for authorization…")
@@ -490,6 +491,10 @@ class MarketWindow(Adw.ApplicationWindow):
 
     def _finish(self, code: int, output: str) -> bool:
         self._busy = False
+        reported = getattr(self, "_telemetry_item", "")
+        self._telemetry_item = ""
+        if code == 0 and reported:
+            _report_package_install(reported)
         fraction = 1 if code == 0 else 0
         message = "Finished." if code == 0 else "The change did not complete."
         for line in output.splitlines():
@@ -534,6 +539,15 @@ class MarketApp(Adw.Application):
             window = MarketWindow(self)
         window.present()
         window.reveal_preview()
+
+
+def _report_package_install(package_id: str) -> None:
+    try:
+        import vital_telemetry
+
+        vital_telemetry.report_package(package_id)
+    except Exception:
+        return
 
 
 def main() -> int:

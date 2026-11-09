@@ -231,6 +231,9 @@ def test_telemetry_is_anonymous_and_limited(tmp_path: Path) -> None:
     assert client.post("/api/v1/telemetry", json={**payload, "install_id": "not-a-uuid"}).status_code == 422
     heartbeat = dict(payload, event="heartbeat", ts="2026-10-05T01:00:00Z")
     assert client.post("/api/v1/telemetry", json=heartbeat).status_code == 204
+    package = dict(payload, event="package", package_id="gimp", ts="2026-10-05T02:00:00Z")
+    assert client.post("/api/v1/telemetry", json=package).status_code == 204
+    assert client.post("/api/v1/telemetry", json=dict(package, hostname="vital")).status_code == 422
     connection = sqlite3.connect(tmp_path / "market.db")
     columns = {
         row[1]

@@ -1,0 +1,19 @@
+---
+title: Install
+description: What the installer requires, and how to check the ISO you downloaded.
+order: 2
+---
+
+Calamares is the installer. It runs offline. The target disk needs at least 16 GiB. A hypervisor disk field that counts decimal gigabytes should be set to 18 GB or more. A smaller disk, or a root partition that is not actually mounted, is rejected before the copy.
+
+Secure Boot has to be off. BIOS and UEFI are both supported.
+
+After you download an image, check it from the release files:
+
+```
+sha256sum -c SHA256SUMS
+```
+
+A release larger than 1900 MiB is split so each GitHub asset stays under 2 GiB. Join the parts in order, then run the check above. The 0.2.1 image published on GitHub is a single ISO.
+
+QEMU needs at least 3 GB of RAM for the live session. `tools/qemu-boot.sh` in the source tree boots BIOS or UEFI.
