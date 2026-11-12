@@ -1,0 +1,50 @@
+.vital-overlay {
+  background-color: #08090C;
+}
+
+.vital-card {
+  background-color: #171C24;
+  border: 1px solid #2A3140;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.vital-accent {
+  color: #E6D3A4;
+  font-weight: 600;
+}
+
+.vital-muted {
+  color: #E7E0D2;
+}
+
+.vital-faint {
+  color: #8C8578;
+}
+
+.vital-danger {
+  color: #C45C4A;
+  font-weight: 600;
+}
+
+.vital-entry {
+  min-height: 46px;
+}
+
+.vital-chip {
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.vital-command {
+  font-family: "IBM Plex Mono", monospace;
+  color: #F3EEE4;
+}
+
+.vital-provider {
+  background-color: #1C232E;
+  border: 1px solid #C6A56A;
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: #E6D3A4;
+}

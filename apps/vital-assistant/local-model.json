@@ -1,0 +1,33 @@
+{
+  "id": "qwen3-0.6b-q8_0",
+  "verified": "2026-11-09",
+  "model": {
+    "name": "Qwen3-0.6B-Q8_0",
+    "filename": "Qwen3-0.6B-Q8_0.gguf",
+    "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "size": 639446688,
+    "license": "Apache-2.0",
+    "license_url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/blob/main/LICENSE",
+    "source": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF",
+    "note": "Official Qwen repository. On 2026-11-09 its tree published this Q8_0 file and no Q4_K_M file."
+  },
+  "runtime": {
+    "project": "llama.cpp",
+    "version": "b12212",
+    "license": "MIT",
+    "license_url": "https://github.com/ggml-org/llama.cpp/blob/master/LICENSE",
+    "cpu": {
+      "filename": "llama-b12212-bin-ubuntu-x64.tar.gz",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b12212/llama-b12212-bin-ubuntu-x64.tar.gz",
+      "sha256": "a9b987738e6724b116980de8f5e15a901a3086587c3d2328533d77582e25ad5b",
+      "size": 23108809
+    },
+    "vulkan": {
+      "filename": "llama-b12212-bin-ubuntu-vulkan-x64.tar.gz",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b12212/llama-b12212-bin-ubuntu-vulkan-x64.tar.gz",
+      "sha256": "1f4c94a3a38b52ed632924aba9cdfa736caaa3ea7812b62ca1d8b84917eb3e15",
+      "size": 35924320
+    }
+  }
+}

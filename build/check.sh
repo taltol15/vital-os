@@ -135,6 +135,11 @@ scripts=(
     overlay/usr/libexec/vitalos-install-bootloader
     apps/vital-assistant/profile.sh
     apps/vital-assistant/hook.bash
+    apps/vital-assistant/postinst
+    apps/vital-assistant/prerm
+    marketplace/catalog/examples/vital-local-model.sh
+    tools/assistant-smoke.sh
+    tools/assistant-qemu-smoke.sh
     overlay/etc/grub.d/06_vital_font
     overlay/usr/share/initramfs-tools/scripts/casper-bottom/26vitalos_desktop
 )
@@ -160,7 +165,16 @@ python3 -m py_compile \
     apps/vital-telemetry/vital_telemetry.py \
     apps/vital-assistant/vital \
     apps/vital-assistant/vital-assistant \
+    apps/vital-assistant/vital-assistant-daemon \
+    apps/vital-assistant/vital-assistant-helper \
     apps/vital-assistant/vital_assistant.py \
+    apps/vital-assistant/vital_actions.py \
+    apps/vital-assistant/vital_context.py \
+    apps/vital-assistant/vital_core.py \
+    apps/vital-assistant/vital_daemon.py \
+    apps/vital-assistant/vital_i18n.py \
+    apps/vital-assistant/vital_local.py \
+    apps/vital-assistant/vital_ui.py \
     apps/vital-assistant/build_deb.py \
     tools/render_previews.py \
     config/calamares/runtime/mount/main.py
@@ -175,7 +189,7 @@ python3 marketplace/tools/build_catalog.py --check || bad "catalog.json does not
 
 (
     cd apps/vital-assistant
-    python3 -m unittest tests.test_assistant
+    python3 -m unittest discover -s tests -t .
 ) || bad "assistant tests failed"
 
 if python3 -c "import fastapi, jsonschema, cryptography, pytest" >/dev/null 2>&1; then

@@ -1,10 +1,18 @@
 [Desktop Entry]
 Type=Application
 Name=Vital Assistant
-Comment=Ask Vital OS for a command. Nothing runs until you confirm.
-Exec=vital-assistant
+Name[he]=עוזר ויטל
+Comment=Ask Vital OS. Nothing changes until you confirm.
+Comment[he]=שאלו את ויטל. שום דבר לא משתנה לפני אישור.
+Exec=vital-assistant --overlay
 Icon=vital-assistant
 Terminal=false
 Categories=Utility;System;
 Keywords=assistant;help;grok;ai;
 StartupNotify=true
+Actions=settings;
+
+[Desktop Action settings]
+Name=Assistant Settings
+Name[he]=הגדרות העוזר
+Exec=vital-assistant --settings

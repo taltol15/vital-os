@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.vital-assistant" path="/org/gnome/shell/extensions/vital-assistant/">
+    <key name="overlay-key" type="as">
+      <default>["&lt;Super&gt;space"]</default>
+      <summary>Overlay shortcut</summary>
+      <description>Accelerator that opens Vital Assistant. The default is Super+Space. Vital OS moves the keyboard-layout switch to Super+Shift+Space.</description>
+    </key>
+  </schema>
+</schemalist>

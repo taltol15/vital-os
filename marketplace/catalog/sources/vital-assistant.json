@@ -1,10 +1,10 @@
 {
   "id": "vital-assistant",
   "name": "Vital Assistant",
-  "summary": "Ask for a command. It runs only after you confirm.",
-  "description": "Vital Assistant answers questions about this system from the terminal (vital ask) and from a window opened with Super+Shift+A. The default provider is xAI Grok using a key you create at console.x.ai. OpenAI-compatible endpoints and a local Ollama install are also supported. The key is stored in the system keyring and is never written to a file or sent to vital-os.org. Prompts are not part of Vital OS telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 of the package matches, and Remove uninstalls the command, the window, the shell hook, and the shortcut.",
+  "summary": "System-wide assistant. Nothing changes until you confirm.",
+  "description": "Vital Assistant 0.3.0 is one per-user daemon shared by the terminal, a Super+Space overlay, and Settings. The default provider is xAI Grok with your own key from console.x.ai, stored in the system keyring and never written to a file or sent to vital-os.org. OpenAI-compatible endpoints, Ollama, and an optional local llama.cpp model are also supported. If the network is down or no key is stored, a ready local model answers instead, and the reply says which provider spoke. System actions are an allowlist (GNOME settings, open a known app, search or install through Marketplace, apt, or Flatpak, and disk, update, battery, and network status). State-changing actions show the exact command and wait. Privileged installs go through polkit. There is no root shell. Context from files, the active window, the clipboard, or a screenshot is off until you turn it on for that question. Hebrew and English are included. Prompts are not telemetry. This package is installed on the image. Marketplace can update it after the SHA-256 matches.",
   "icon_file": "icons/vital-assistant.svg",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "category": "System",
   "publisher": "Vital OS",
   "homepage": "https://github.com/taltol15/vital-os",
@@ -12,7 +12,7 @@
   "install": {
     "method": "deb",
     "package": "vital-assistant",
-    "file": "debs/vital-assistant_0.2.1_all.deb"
+    "file": "debs/vital-assistant_0.3.0_all.deb"
   },
   "min_os_version": "0.2.0"
 }
