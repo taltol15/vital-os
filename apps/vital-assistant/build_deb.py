@@ -88,11 +88,9 @@ def build() -> Path:
     for path in extension.rglob("*"):
         if path.is_file():
             os.chmod(path, 0o644)
-    if shutil.which("glib-compile-schemas"):
-        subprocess.run(
-            ["glib-compile-schemas", str(extension / "schemas")],
-            check=False,
-        )
+    # Do not compile gschemas here. glib-compile-schemas output depends on the
+    # host GLib, so the deb hash would change between machines. postinst compiles
+    # the schema on the installed system.
     doc = REPO / "docs" / "assistant.md"
     if doc.is_file():
         place(tree, "usr/share/doc/vital-assistant/assistant.md", doc, 0o644)

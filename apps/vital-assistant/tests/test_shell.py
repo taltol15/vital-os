@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import stat
 import subprocess
 import sys
@@ -119,7 +120,10 @@ class ShellTests(unittest.TestCase):
         self.assertIn(b"rmdir empty-folder", completed.stdout)
 
     def test_zsh_hook_parses(self) -> None:
-        zsh = subprocess.run(["zsh", "-n", str(ZSH)], check=False, capture_output=True, text=True)
+        zsh_bin = shutil.which("zsh")
+        if zsh_bin is None:
+            self.skipTest("zsh is not installed")
+        zsh = subprocess.run([zsh_bin, "-n", str(ZSH)], check=False, capture_output=True, text=True)
         self.assertEqual(zsh.returncode, 0, zsh.stderr)
         text = ZSH.read_text(encoding="utf-8")
         self.assertIn("</dev/null", text)
