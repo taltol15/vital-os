@@ -44,6 +44,8 @@ UUID_V4 = re.compile(
 OS_VERSION = re.compile(r"^[0-9A-Za-z][0-9A-Za-z._+-]{0,31}$")
 TS_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.Z+-]{1,24}$")
 TELEMETRY_KEYS = frozenset({"install_id", "os_version", "event", "ts"})
+PACKAGE_KEYS = TELEMETRY_KEYS | {"package_id"}
+PACKAGE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{1,80}$")
 MAX_UPLOAD = 512 * 1024 * 1024
 
 
@@ -184,6 +186,16 @@ def connect(path: Path) -> sqlite3.Connection:
             day TEXT NOT NULL,
             install_id TEXT NOT NULL,
             PRIMARY KEY (day, install_id)
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS package_installs (
+            package_id TEXT NOT NULL,
+            install_id TEXT NOT NULL,
+            first_seen TEXT NOT NULL,
+            PRIMARY KEY (package_id, install_id)
         )
         """
     )
@@ -458,6 +470,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         (day,),
                     ).fetchone()["n"]
                 )
+            versions = connection.execute(
+                """
+                SELECT os_version, COUNT(*) AS n FROM installs
+                GROUP BY os_version ORDER BY n DESC, os_version
+                """
+            ).fetchall()
+            packages = connection.execute(
+                """
+                SELECT package_id, COUNT(*) AS n FROM package_installs
+                GROUP BY package_id ORDER BY n DESC, package_id
+                """
+            ).fetchall()
         return {
             "downloads": int(downloads_row["value"]) if downloads_row else 0,
             "installs": int(installs),
@@ -465,6 +489,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "live_days": cfg.live_days,
             "heartbeats": beats,
             "days": days,
+            "versions": [(row["os_version"], int(row["n"])) for row in versions],
+            "packages": [(row["package_id"], int(row["n"])) for row in packages],
         }
 
     def bump_downloads() -> None:
@@ -507,6 +533,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 connection.execute(
                     "INSERT OR IGNORE INTO heartbeat_days (day, install_id) VALUES (?, ?)",
                     (day, install_id),
+                )
+            if event == "package":
+                connection.execute(
+                    "INSERT OR IGNORE INTO package_installs (package_id, install_id, first_seen) VALUES (?, ?, ?)",
+                    (payload["package_id"], install_id, now),
                 )
             connection.commit()
 
@@ -665,14 +696,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         install_key = install_id if isinstance(install_id, str) else ""
         if not telemetry_gate.allow(install_key or peer, peer):
             raise HTTPException(status_code=429, detail="rate limit exceeded")
-        if set(payload) != TELEMETRY_KEYS:
+        event = payload.get("event")
+        if event == "package":
+            if set(payload) != PACKAGE_KEYS:
+                raise HTTPException(
+                    status_code=422,
+                    detail="package event must contain only install_id, os_version, event, ts, package_id",
+                )
+        elif set(payload) != TELEMETRY_KEYS:
             raise HTTPException(status_code=422, detail="payload must contain only install_id, os_version, event, ts")
         if not isinstance(install_id, str) or not UUID_V4.match(install_id):
             raise HTTPException(status_code=422, detail="install_id must be a uuid v4")
         if not isinstance(payload.get("os_version"), str) or not OS_VERSION.match(payload["os_version"]):
             raise HTTPException(status_code=422, detail="os_version is invalid")
-        if payload.get("event") not in {"install", "heartbeat"}:
-            raise HTTPException(status_code=422, detail="event must be install or heartbeat")
+        if event not in {"install", "heartbeat", "package"}:
+            raise HTTPException(status_code=422, detail="event must be install, heartbeat, or package")
+        if event == "package" and (not isinstance(payload.get("package_id"), str) or not PACKAGE_ID.match(payload["package_id"])):
+            raise HTTPException(status_code=422, detail="package_id is invalid")
         if not isinstance(payload.get("ts"), str) or not TS_RE.match(payload["ts"]):
             raise HTTPException(status_code=422, detail="ts is invalid")
         record_telemetry(payload)

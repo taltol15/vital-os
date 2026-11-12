@@ -18,17 +18,23 @@ A check-in chart on that page shows, for each of the last 7 days, how many disti
 
 Each installed system keeps a random UUID v4 in `/var/lib/vitalos/telemetry/install_id` (mode 600). That file is created on the machine. It is not derived from the hostname, username, MAC address, serial number, disk id, or any other hardware fact.
 
-The only request is `POST https://vital-os.org/api/v1/telemetry` with this JSON and nothing else:
+The only request is `POST https://vital-os.org/api/v1/telemetry`. An install or a weekly check-in sends this JSON and nothing else:
 
 ```json
-{"install_id":"...","os_version":"0.1.0","event":"install","ts":"2026-10-05T12:00:00Z"}
+{"install_id":"...","os_version":"0.2.1","event":"install","ts":"2026-10-05T12:00:00Z"}
 ```
 
-`event` is `install` or `heartbeat`. `os_version` is the version string from the image, such as `0.1.0`. `ts` is the clock on the computer at send time. The server checks that `ts` looks like a timestamp, then discards it. The server stores its own receipt time.
+`event` is `install` or `heartbeat`. `os_version` is the version string from the image, such as `0.2.1`. `ts` is the clock on the computer at send time. The server checks that `ts` looks like a timestamp, then discards it. The server stores its own receipt time.
 
 The same post is used for a weekly check-in (`event` = `heartbeat`).
 
-The client does not send an app list, Marketplace browsing, searches, crash reports, location, or account names. Marketplace installs are a separate action you take in that app. They are not part of this count.
+After a successful Marketplace install or update, and only while this switch is on, the client may send one more shape. `event` is `package`, and `package_id` is the catalog item id (for example `gimp`). It is not a list of every program on the computer, and it is not sent for browsing or search.
+
+```json
+{"install_id":"...","os_version":"0.2.1","event":"package","package_id":"gimp","ts":"2026-10-05T12:00:00Z"}
+```
+
+The client does not send Marketplace browsing, searches, crash reports, location, or account names.
 
 ## When it is sent
 
@@ -48,11 +54,13 @@ sudo vital-telemetry-ctl off
 
 ## What the server stores
 
-SQLite keeps, for each install id: the OS version, the first time it was seen, the last time it was seen, whether an install event arrived, and the last heartbeat time. Heartbeat days are stored as a date plus the install id, so the 7-day chart can be drawn. The download counter is a single integer.
+For each install id the server keeps the OS version, the first time it was seen, the last time it was seen, whether an install event arrived, and the last heartbeat time. Heartbeat days are stored as a date plus the install id, so the 7-day chart can be drawn. A package report stores the catalog item id and the install id, so the admin page can count machines per item. The download counter is a single integer.
 
-The server does not have a column for an IP address, hostname, account, or the client timestamp.
+The reference catalog process keeps those rows in SQLite. The website at vital-os.org keeps the same columns in Postgres. Neither database has a column for an IP address, a hostname, an account, or the client timestamp.
 
-Rate limits live in process memory only. For telemetry, the key is the install id plus a hash of the client address mixed with a salt that changes at UTC midnight. That hash is not written to SQLite. At midnight the salt and the address buckets are dropped, so the hashes cannot be matched up the next day. Admin login attempts are limited the same way: memory only, not a log of addresses.
+The Python server keeps rate limits in process memory only. The website has no shared process memory, so it stores a hash of the install id or of the client address, mixed with a secret and the current UTC hour. The table has the hash, a hit count, and an expiry. It has no address column. Expired rows are deleted. The hash is not useful after the hour changes or the secret is rotated.
+
+The website contact form is separate from this count. It stores the name, email, subject, and message that were typed into the form, so an administrator can read them. It does not store an address. A hidden field that a person does not see, and a rate limit, drop automated posts. The form does not send email.
 
 Uvicorn is started with `--no-access-log`. The example Caddyfile discards access logs. Do not turn on proxy logs that record client addresses for this host. If you enable them to debug an outage, delete them within 24 hours.
 

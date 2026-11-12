@@ -29,3 +29,10 @@ marketplace/data/
 # Editor
 .DS_Store
 *~
+
+# Website
+website/node_modules/
+website/.next/
+website/.env
+website/.env.local
+website/.env.*.local

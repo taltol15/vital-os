@@ -1,0 +1,175 @@
+export const en = {
+  skip: "Skip to content",
+  nav: {
+    primary: "Primary",
+    downloads: "Downloads",
+    docs: "Docs",
+    contact: "Contact",
+    download: "Download",
+    menu: "Menu",
+  },
+  localeLabel: "Language",
+  footer: {
+    rights: "Original mark, wallpapers, and themes. GPL-3.0-or-later.",
+    trademark: "Unofficial derivative. Ubuntu is a trademark of Canonical Ltd.",
+    source: "Source",
+    privacy: "Privacy",
+  },
+  hero: {
+    eyebrow: "Nocturne · {version}",
+    title: "The quiet desktop.",
+    lede: "Vital OS is a personal GNOME desktop based on Ubuntu 24.04 LTS. The field is graphite. The only accent is champagne. The mark and the wallpapers are original.",
+    primary: "Download {version}",
+    secondary: "Read the docs",
+    meta: "BIOS and UEFI · Secure Boot off · 16 GiB to install",
+  },
+  desktop: {
+    alt: "Composed preview of the Vital OS desktop: dark graphite wallpaper, the gold Vital mark, and a bottom dock.",
+    caption: "Composed from the Nocturne artwork. This frame is not a photograph of a running virtual machine.",
+  },
+  features: {
+    eyebrow: "On the image",
+    title: "A full desktop, with the branding kept ours.",
+    items: [
+      {
+        title: "Graphite, then gold",
+        body: "GNOME Shell is dark by default. The dock sits along the bottom. The shell theme, wallpapers, boot splash, and mark are original. They are not Yaru, and they are not another company’s logo.",
+      },
+      {
+        title: "Try it, then install",
+        body: "The ISO is a hybrid live image for BIOS and UEFI. Calamares installs offline. The disk needs at least 16 GiB. Secure Boot is not supported. The live user is vital, with no password; the installed account sets its own.",
+      },
+      {
+        title: "A signed catalog",
+        body: "Vital Marketplace reads the catalog at /api/v1/catalog and checks an ed25519 signature. A downloaded package or script is refused if the SHA-256 does not match. If the server cannot be reached, the desktop uses the catalog shipped in the image and says so.",
+      },
+      {
+        title: "Counts, not a profile",
+        body: "With the Welcome switch left on, a machine can send a random id, the OS version, and an install or a weekly heartbeat. It does not send a name, a username, an email, a hostname, or a hardware id.",
+      },
+    ],
+  },
+  assistant: {
+    eyebrow: "Vital Assistant",
+    title: "Ask. Confirm. Then it runs.",
+    lede: "The assistant is installed with the image and can be removed from Marketplace. Questions go to the provider you choose. They are not sent to vital-os.org.",
+    points: [
+      {
+        title: "A window on the desktop",
+        body: "Super+Shift+A opens Vital Assistant. Super+Space stays the keyboard layout switch, and Super+A stays the app grid.",
+      },
+      {
+        title: "A terminal, too",
+        body: "vital ask answers in the shell. ask and ?? are the short forms.",
+      },
+      {
+        title: "Nothing runs until you approve it",
+        body: "An ordinary command waits for confirmation. A command that looks destructive is refused in the window. In the terminal you have to type yes, or type the command itself.",
+      },
+      {
+        title: "A local model, if you want one",
+        body: "The default provider is xAI Grok, with a key you create. An OpenAI-compatible endpoint works as well. Ollama runs on this computer and stores no key.",
+      },
+      {
+        title: "Context stays off",
+        body: "The working directory, last command, exit code, and distro name are included only when send_context is on. A hint after a failed command stays off until shell_hook is on. The key lives in the system keyring.",
+      },
+    ],
+    terminalLabel: "The shape of a terminal answer. This is the format the program prints, not a recorded session.",
+  },
+  privacy: {
+    eyebrow: "Privacy",
+    title: "The count is four fields.",
+    lede: "The switch in Vital Welcome is on until you turn it off. Turning it off sends nothing, and it does not create an install id.",
+    rows: [
+      { term: "install_id", detail: "A random UUID created on the machine. It is not derived from the hardware." },
+      { term: "os_version", detail: "The version string from the image, such as 0.2.1." },
+      { term: "event", detail: "install, a weekly heartbeat, or, after a Marketplace install, the catalog item id." },
+      { term: "ts", detail: "The clock on the computer. The server checks the shape, then discards it." },
+    ],
+    link: "Privacy notes",
+  },
+  gallery: {
+    eyebrow: "From the repository",
+    title: "Welcome, the catalog, and the firmware menu.",
+    items: [
+      {
+        alt: "Vital Welcome window, the first page, exported from the GTK app.",
+        caption: "Vital Welcome, exported from the app. The product line in this export reads 0.1.0.",
+        src: "/screenshots/welcome.png",
+        width: 880,
+        height: 640,
+      },
+      {
+        alt: "Vital Marketplace window showing the bundled catalog.",
+        caption: "Marketplace, exported against the bundled catalog. The icons are original tiles.",
+        src: "/screenshots/marketplace.png",
+        width: 980,
+        height: 680,
+      },
+      {
+        alt: "GRUB menu in a QEMU UEFI boot, with Try and Install entries.",
+        caption: "GRUB on a QEMU UEFI boot. Try, Install, and safe graphics.",
+        src: "/screenshots/qemu-uefi.png",
+        width: 1280,
+        height: 800,
+      },
+    ],
+  },
+  cta: {
+    title: "Take the current image.",
+    lede: "The counted link adds one to the download total and sends you to the GitHub release. The checksum is on the downloads page.",
+    button: "Download the ISO",
+    secondary: "All versions",
+  },
+  downloads: {
+    title: "Downloads",
+    lede: "Images are the GitHub release files. The checksums below are the asset digests published with those releases. Secure Boot is not supported.",
+    recommended: "Recommended",
+    archived: "Archived",
+    prerelease: "Prerelease",
+    released: "Published",
+    size: "Size",
+    sha: "SHA-256",
+    copy: "Copy",
+    copied: "Copied",
+    iso: "ISO",
+    sums: "SHA256SUMS",
+    readme: "Download notes",
+    counted: "Counted download",
+    notes: "Release notes",
+    verifyTitle: "Check the file",
+    verifyBody:
+      "Download the ISO and the SHA256SUMS file from the same release. In the directory that contains both, run sha256sum -c SHA256SUMS. A release larger than 1900 MiB is split into parts; join those parts in order before checking. These published images are single ISO files.",
+    empty: "No releases are published yet.",
+  },
+  docs: {
+    title: "Docs",
+    lede: "A short set of notes. Each page is marked as a scaffold and only states what the repository already says.",
+    nav: "Documentation",
+    scaffold: "Scaffold. This page will be filled in later. The notes below are facts checked against the Vital OS repository.",
+    english: "This guide is still written in English.",
+  },
+  contact: {
+    title: "Contact",
+    lede: "The message is stored for the administrator. Nothing is emailed from this form.",
+    name: "Name",
+    email: "Email",
+    subject: "Subject",
+    message: "Message",
+    send: "Send",
+    sending: "Sending",
+    sent: "Received. It is waiting in the admin list.",
+    invalid: "Check the fields and try again.",
+    rate: "Too many messages from here. Wait a while and try again.",
+    unavailable: "The form is not connected to a database yet.",
+    fax: "Fax number",
+  },
+  notFound: {
+    title: "That page is not here.",
+    body: "The public pages are home, downloads, docs, and contact.",
+    home: "Back home",
+  },
+};
+
+export type Dictionary = typeof en;

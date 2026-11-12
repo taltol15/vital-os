@@ -165,6 +165,14 @@ def dashboard(stats: Mapping[str, object], csrf: str, *, warning: str = "") -> s
       {sparkline(beats)}
       <p class="muted">{esc(label)}</p>
     </section>
+    <section class="card">
+      <h2>Versions</h2>
+      <p class="muted">{esc(", ".join(f"{name} {count}" for name, count in stats.get("versions", [])) or "No machines yet.")}</p>
+    </section>
+    <section class="card">
+      <h2>Packages</h2>
+      <p class="muted">{esc(", ".join(f"{name} {count}" for name, count in stats.get("packages", [])) or "No catalog items reported yet.")}</p>
+    </section>
     <form class="panel" method="post" action="/mgmt/publish">
       <input type="hidden" name="csrf" value="{esc(csrf)}">
       <h2>Publish</h2>

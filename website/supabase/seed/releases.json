@@ -1,0 +1,58 @@
+[
+  {
+    "version": "0.2.1",
+    "published_at": "2026-10-05T21:05:26Z",
+    "notes": "Vital OS v0.2.1 hybrid live and install ISO. Join any .part files, then check SHA256SUMS. Secure Boot is not supported in this release.",
+    "sha256": "372eda7e6253df3490dbe96e480e8aaf2760bf9f8b3bfedca3622bf00d313f15",
+    "size_bytes": 1940025344,
+    "filename": "VitalOS-0.2.1-amd64.iso",
+    "download_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.1/VitalOS-0.2.1-amd64.iso",
+    "sums_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.1/SHA256SUMS",
+    "readme_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.1/README-download.txt",
+    "recommended": true,
+    "archived": false,
+    "prerelease": false
+  },
+  {
+    "version": "0.2.0",
+    "published_at": "2026-10-05T18:49:17Z",
+    "notes": "Vital OS v0.2.0 hybrid live and install ISO. Join any .part files, then check SHA256SUMS. Secure Boot is not supported in this release.",
+    "sha256": "20f87c13b34a0823260c7076654948867153973e64be891d7a57439c359b691e",
+    "size_bytes": 1940011008,
+    "filename": "VitalOS-0.2.0-amd64.iso",
+    "download_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.0/VitalOS-0.2.0-amd64.iso",
+    "sums_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.0/SHA256SUMS",
+    "readme_url": "https://github.com/taltol15/vital-os/releases/download/v0.2.0/README-download.txt",
+    "recommended": false,
+    "archived": true,
+    "prerelease": false
+  },
+  {
+    "version": "0.1.1",
+    "published_at": "2026-10-05T17:31:28Z",
+    "notes": "Vital OS v0.1.1 hybrid live and install ISO. Join any .part files, then check SHA256SUMS. Secure Boot is not supported in this release.",
+    "sha256": "c2f156acabbb92919298d67f48568680e462369e984da851780ca64bb1b1268a",
+    "size_bytes": 1939980288,
+    "filename": "VitalOS-0.1.1-amd64.iso",
+    "download_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.1/VitalOS-0.1.1-amd64.iso",
+    "sums_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.1/SHA256SUMS",
+    "readme_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.1/README-download.txt",
+    "recommended": false,
+    "archived": true,
+    "prerelease": false
+  },
+  {
+    "version": "0.1.0.1",
+    "published_at": "2026-10-05T14:52:49Z",
+    "notes": "Vital OS v0.1.0.1 hybrid live and install ISO. Join any .part files, then check SHA256SUMS. Secure Boot is not supported in this release.",
+    "sha256": "777ec93feb129ea1918283c29201be5b74406ffa679abff6f62f5e86629b7b80",
+    "size_bytes": 1943822336,
+    "filename": "VitalOS-0.1.0-amd64.iso",
+    "download_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.0.1/VitalOS-0.1.0-amd64.iso",
+    "sums_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.0.1/SHA256SUMS",
+    "readme_url": "https://github.com/taltol15/vital-os/releases/download/v0.1.0.1/README-download.txt",
+    "recommended": false,
+    "archived": true,
+    "prerelease": false
+  }
+]

@@ -1,0 +1,17 @@
+---
+title: Privacy
+description: The anonymous install count, and what the website stores when you write to us.
+order: 5
+---
+
+The full data model lives in `PRIVACY.md` in the source tree. This page only repeats the parts that are already true there, plus the website contact form.
+
+The install count posts to `https://vital-os.org/api/v1/telemetry`. The body is `install_id`, `os_version`, `event`, and `ts`. `event` is `install` or `heartbeat`. The server checks `ts` and does not store it. It stores its own receipt time. It does not store an IP address, a hostname, or an account name.
+
+The switch in Vital Welcome is on by default. `sudo vital-telemetry-ctl off` stops it. While it is off, the client does not create an install id and does not call the server. Live sessions (`boot=casper`) do not send.
+
+A successful Marketplace install or update can also send `event` set to `package` and the catalog item id, and only when that same switch is on. That is the item id from the catalog, not a list of every program on the computer. The admin page counts how many installs reported each item.
+
+The public ISO link is `https://vital-os.org/api/v1/downloads/iso`. Each GET adds one to a counter and redirects. It sets no cookie.
+
+The contact form stores the name, email, subject, and message you type, so an administrator can read them. It does not send mail. A hidden field and a rate limit drop automated posts.
