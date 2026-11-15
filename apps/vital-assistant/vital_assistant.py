@@ -64,6 +64,15 @@ class Suggestion:
         return self.risk is not None
 
 
+_HOTKEY_RE = re.compile(r"^(?:<(?:Super|Shift|Control|Alt|Primary)>)+(?:space|[A-Za-z0-9])$")
+
+
+@dataclass
+class ModelTurn:
+    text: str
+    tool_calls: list[tuple[str, dict]]
+
+
 @dataclass
 class Settings:
     provider: str = "grok"
@@ -71,6 +80,15 @@ class Settings:
     base_url: str = ""
     shell_hook: bool = False
     send_context: bool = False
+    hotkey: str = "<Super>space"
+    language: str = "system"
+    actions_enabled: bool = True
+    offer_files: bool = False
+    offer_window: bool = False
+    offer_clipboard: bool = False
+    offer_screenshot: bool = False
+    history_enabled: bool = True
+    local_device: str = "auto"
 
 
 class MemoryKeyStore:
@@ -151,6 +169,18 @@ def load_settings(path: Path | None = None) -> Settings:
         settings.base_url = values["base_url"].strip()
     settings.shell_hook = _truthy(values.get("shell_hook", "0"))
     settings.send_context = _truthy(values.get("send_context", "0"))
+    settings.actions_enabled = _truthy(values.get("actions_enabled", "1"))
+    settings.offer_files = _truthy(values.get("offer_files", "0"))
+    settings.offer_window = _truthy(values.get("offer_window", "0"))
+    settings.offer_clipboard = _truthy(values.get("offer_clipboard", "0"))
+    settings.offer_screenshot = _truthy(values.get("offer_screenshot", "0"))
+    settings.history_enabled = _truthy(values.get("history_enabled", "1"))
+    hotkey = values.get("hotkey", settings.hotkey).strip()
+    settings.hotkey = hotkey if valid_hotkey(hotkey) else "<Super>space"
+    language = values.get("language", settings.language).strip().lower()
+    settings.language = language if language in {"system", "en", "he"} else "system"
+    device = values.get("local_device", settings.local_device).strip().lower()
+    settings.local_device = device if device in {"auto", "cpu", "gpu"} else "auto"
     env_provider = os.environ.get("VITAL_ASSISTANT_PROVIDER", "").strip().lower()
     if env_provider:
         settings.provider = env_provider
@@ -166,6 +196,15 @@ def save_user_settings(settings: Settings, path: Path | None = None) -> None:
         f"base_url={settings.base_url}",
         f"shell_hook={'1' if settings.shell_hook else '0'}",
         f"send_context={'1' if settings.send_context else '0'}",
+        f"hotkey={settings.hotkey}",
+        f"language={settings.language}",
+        f"actions_enabled={'1' if settings.actions_enabled else '0'}",
+        f"offer_files={'1' if settings.offer_files else '0'}",
+        f"offer_window={'1' if settings.offer_window else '0'}",
+        f"offer_clipboard={'1' if settings.offer_clipboard else '0'}",
+        f"offer_screenshot={'1' if settings.offer_screenshot else '0'}",
+        f"history_enabled={'1' if settings.history_enabled else '0'}",
+        f"local_device={settings.local_device}",
         "",
     ]
     destination.write_text("\n".join(lines), encoding="utf-8")
@@ -209,7 +248,7 @@ def build_user_message(question: str, context: dict[str, str] | None) -> str:
     if not context:
         return body
     lines = [body, "", "Shell context, included because send_context is on:"]
-    for key in ("cwd", "last_command", "exit_code", "distro"):
+    for key in ("cwd", "last_command", "exit_code", "stderr", "distro"):
         if context.get(key):
             lines.append(f"{key}: {context[key]}")
     return "\n".join(lines)
@@ -232,16 +271,38 @@ class MockProvider:
             )
         return "COMMAND: ls\nEXPLANATION: Lists the names in the current directory."
 
+    def converse(self, messages: list[dict], tools: list[dict] | None = None) -> ModelTurn:
+        question = _message_text(messages[-1]).lower() if messages else ""
+        if tools and "dark mode" in question:
+            return ModelTurn(
+                "",
+                [("gnome.set", {"schema": "org.gnome.desktop.interface", "key": "color-scheme", "value": "prefer-dark"})],
+            )
+        if tools and "disk space" in question:
+            return ModelTurn("", [("status.disk", {})])
+        if tools and "install vim" in question:
+            return ModelTurn("", [("apps.install", {"source": "apt", "name": "vim"})])
+        return ModelTurn(self.complete(messages), [])
+
+    def stream(self, messages: list[dict], tools: list[dict] | None = None):
+        turn = self.converse(messages, tools)
+        step = 24
+        for index in range(0, len(turn.text), step):
+            yield ("text", turn.text[index : index + step])
+        for call in turn.tool_calls:
+            yield ("tool", call)
+
 
 class OpenAICompatibleProvider:
-    def __init__(self, name: str, base_url: str, api_key: str, model: str) -> None:
+    def __init__(self, name: str, base_url: str, api_key: str, model: str, require_key: bool = True) -> None:
         self.name = name
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
+        self.require_key = require_key
 
-    def complete(self, messages: list[dict[str, str]]) -> str:
-        if not self.api_key:
+    def complete(self, messages: list[dict]) -> str:
+        if self.require_key and not self.api_key:
             raise AssistantError(f"{self.name} needs an API key in the keyring.")
         payload = {
             "model": self.model,
@@ -251,11 +312,7 @@ class OpenAICompatibleProvider:
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions",
             data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "Vital-Assistant",
-            },
+            headers=_provider_headers(self.api_key),
             method="POST",
         )
         try:
@@ -267,9 +324,50 @@ class OpenAICompatibleProvider:
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
             raise AssistantError(f"Could not reach {self.name}: {exc}") from exc
         try:
-            return str(body["choices"][0]["message"]["content"])
+            message = body["choices"][0]["message"]
+            return str(message.get("content") or "")
         except (KeyError, IndexError, TypeError) as exc:
             raise AssistantError(f"{self.name} returned an unexpected reply.") from exc
+
+    def converse(self, messages: list[dict], tools: list[dict] | None = None) -> ModelTurn:
+        text_parts: list[str] = []
+        calls: list[tuple[str, dict]] = []
+        for kind, piece in self.stream(messages, tools):
+            if kind == "text":
+                text_parts.append(str(piece))
+            elif kind == "tool" and isinstance(piece, tuple):
+                calls.append(piece)
+        return ModelTurn("".join(text_parts), calls)
+
+    def stream(self, messages: list[dict], tools: list[dict] | None = None):
+        if self.require_key and not self.api_key:
+            raise AssistantError(f"{self.name} needs an API key in the keyring.")
+        payload: dict = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.2,
+            "stream": True,
+        }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
+        request = urllib.request.Request(
+            f"{self.base_url}/chat/completions",
+            data=json.dumps(payload).encode("utf-8"),
+            headers=_provider_headers(self.api_key),
+            method="POST",
+        )
+        try:
+            response = urllib.request.urlopen(request, timeout=120)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", "replace")[:300]
+            raise AssistantError(f"{self.name} returned HTTP {exc.code}. {detail}") from exc
+        except (urllib.error.URLError, TimeoutError) as exc:
+            raise AssistantError(f"Could not reach {self.name}: {exc}") from exc
+        try:
+            yield from _iter_sse(response)
+        finally:
+            response.close()
 
 
 class OllamaProvider:
@@ -299,6 +397,13 @@ class OllamaProvider:
             raise AssistantError("Ollama returned an unexpected reply.")
         return str(message["content"])
 
+    def converse(self, messages: list[dict], tools: list[dict] | None = None) -> ModelTurn:
+        return ModelTurn(self.complete(messages), [])
+
+    def stream(self, messages: list[dict], tools: list[dict] | None = None):
+        text = self.complete(messages)
+        yield ("text", text)
+
 
 def make_provider(settings: Settings, keystore: MemoryKeyStore | LibsecretKeyStore):
     name = settings.provider
@@ -309,6 +414,17 @@ def make_provider(settings: Settings, keystore: MemoryKeyStore | LibsecretKeySto
             settings.base_url or DEFAULT_OLLAMA_URL,
             settings.model or DEFAULT_OLLAMA_MODEL,
         )
+    if name == "local":
+        from vital_local import ensure_server
+
+        try:
+            url = ensure_server(settings.local_device)
+        except RuntimeError as exc:
+            raise AssistantError(
+                "The local model is not installed. "
+                "Install Vital Local Model from Vital Marketplace."
+            ) from exc
+        return OpenAICompatibleProvider("Local", url, "", settings.model or "qwen3", require_key=False)
     if name == "grok":
         return OpenAICompatibleProvider(
             "Grok",
@@ -324,7 +440,7 @@ def make_provider(settings: Settings, keystore: MemoryKeyStore | LibsecretKeySto
             keystore.load("openai") or "",
             settings.model or "gpt-4o-mini",
         )
-    raise AssistantError(f"Unknown provider {name}. Use grok, openai, ollama, or mock.")
+    raise AssistantError(f"Unknown provider {name}. Use grok, openai, ollama, local, auto, or mock.")
 
 
 def suggest(
@@ -421,6 +537,89 @@ def _truthy(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def valid_hotkey(value: str) -> bool:
+    text = value.strip()
+    return bool(text) and len(text) <= 64 and bool(_HOTKEY_RE.fullmatch(text))
+
+
+def _provider_headers(api_key: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json", "User-Agent": "Vital-Assistant"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
+
+
+def _message_text(message: dict) -> str:
+    content = message.get("content", "")
+    if isinstance(content, list):
+        parts = []
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "text":
+                parts.append(str(part.get("text", "")))
+        return "\n".join(parts)
+    return str(content)
+
+
+def _iter_sse(response):
+    tools: dict[int, dict[str, str]] = {}
+    for raw in response:
+        line = raw.decode("utf-8", "replace").strip()
+        if not line.startswith("data:"):
+            continue
+        data = line[5:].strip()
+        if data == "[DONE]":
+            break
+        try:
+            event = json.loads(data)
+        except json.JSONDecodeError:
+            continue
+        try:
+            delta = event["choices"][0].get("delta") or {}
+        except (KeyError, IndexError, TypeError):
+            continue
+        content = delta.get("content") or ""
+        if content:
+            yield ("text", str(content))
+        for call in delta.get("tool_calls") or []:
+            if not isinstance(call, dict):
+                continue
+            index = int(call.get("index") or 0)
+            slot = tools.setdefault(index, {"name": "", "arguments": ""})
+            function = call.get("function") or {}
+            if function.get("name"):
+                slot["name"] += str(function["name"])
+            if function.get("arguments"):
+                slot["arguments"] += str(function["arguments"])
+    for slot in tools.values():
+        if not slot["name"]:
+            continue
+        try:
+            args = json.loads(slot["arguments"] or "{}")
+        except json.JSONDecodeError:
+            args = {}
+        if isinstance(args, dict):
+            yield ("tool", (slot["name"], args))
+
+
+def read_piped() -> str:
+    import select
+    import sys
+
+    if sys.stdin is None or sys.stdin.isatty():
+        return ""
+    try:
+        ready, _, _ = select.select([sys.stdin], [], [], 0)
+    except (OSError, ValueError):
+        return ""
+    if not ready:
+        return ""
+    try:
+        data = sys.stdin.read(200_000)
+    except OSError:
+        return ""
+    return data or ""
+
+
 def shell_context_from_env() -> dict[str, str]:
     release = "Vital OS"
     os_release = Path("/etc/os-release")
@@ -454,9 +653,14 @@ def _dispatch(args: list[str]) -> int:
     if not args or args[0] in {"-h", "--help"}:
         print(
             "vital ask \"question\"\n"
+            "vital suggest \"natural language\"\n"
+            "vital explain\n"
+            "cmd | vital ask \"what does this error mean\"\n"
             "vital connect grok|openai|ollama\n"
             "vital disconnect grok|openai\n"
             "vital status\n"
+            "vital history clear\n"
+            "A suggested command is shown and runs only after you confirm.\n"
             "A failed-command hint is off until shell_hook=1 in assistant.conf."
         )
         return 0
@@ -467,7 +671,20 @@ def _dispatch(args: list[str]) -> int:
         return _connect(args[1:])
     if command == "disconnect":
         return _disconnect(args[1:])
-    if command == "ask":
+    if command == "history" and len(args) > 1 and args[1] == "clear":
+        from vital_core import clear_history
+
+        clear_history()
+        print("History cleared from this computer.")
+        return 0
+    if command == "daemon":
+        from vital_daemon import serve
+
+        serve()
+        return 0
+    if command == "explain":
+        return _explain(args[1:])
+    if command in {"ask", "suggest"}:
         return _ask(args[1:])
     if command == "--from-hook":
         return _ask(args)
@@ -475,7 +692,7 @@ def _dispatch(args: list[str]) -> int:
 
 
 def keystore_for(settings: Settings) -> MemoryKeyStore | LibsecretKeyStore:
-    if settings.provider in {"mock", "ollama"}:
+    if settings.provider in {"mock", "ollama", "local"}:
         return MemoryKeyStore()
     return default_keystore()
 
@@ -485,10 +702,22 @@ def _status() -> int:
     print(f"provider={settings.provider}")
     print(f"shell_hook={'on' if settings.shell_hook else 'off'}")
     print(f"send_context={'on' if settings.send_context else 'off'}")
-    if settings.provider in {"grok", "openai", "openai-compatible"}:
+    if settings.provider in {"grok", "openai", "openai-compatible", "auto"}:
         store = keystore_for(settings)
-        account = "grok" if settings.provider == "grok" else "openai"
+        account = "openai" if settings.provider in {"openai", "openai-compatible"} else "grok"
         print("key=stored" if store.load(account) else "key=missing")
+    print(f"hotkey={settings.hotkey}")
+    print(f"language={settings.language}")
+    print(f"actions={'on' if settings.actions_enabled else 'off'}")
+    try:
+        from vital_local import describe_local
+
+        local = describe_local(settings.local_device)
+        print("local=ready" if local["ready"] else "local=missing")
+        if local["ready"]:
+            print(f"local_device={local['device']}")
+    except Exception:
+        print("local=missing")
     return 0
 
 
@@ -525,10 +754,35 @@ def _disconnect(args: list[str]) -> int:
     return 0
 
 
+def _explain(args: list[str]) -> int:
+    from vital_context import runtime_dir
+
+    directory = runtime_dir()
+    command = _read_small(directory / "last.cmd")
+    exit_code = _read_small(directory / "last.exit")
+    forwarded = ["--stderr-file", str(directory / "last.err")]
+    if exit_code:
+        forwarded.extend(["--exit", exit_code])
+    if command:
+        forwarded.extend(["--command", command])
+    forwarded.extend(args)
+    if not any(part != "--stderr-file" and not part.startswith("--") for part in args):
+        forwarded.append("Explain the last failed command and its error.")
+    return _ask(forwarded)
+
+
+def _read_small(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")[:4000].strip()
+    except OSError:
+        return ""
+
+
 def _ask(args: list[str]) -> int:
     from_hook = False
     exit_code = ""
     last_command = ""
+    stderr_file = ""
     question_parts: list[str] = []
     index = 0
     while index < len(args):
@@ -541,29 +795,50 @@ def _ask(args: list[str]) -> int:
         elif item == "--command" and index + 1 < len(args):
             index += 1
             last_command = args[index]
+        elif item == "--stderr-file" and index + 1 < len(args):
+            index += 1
+            stderr_file = args[index]
         else:
             question_parts.append(item)
         index += 1
     question = " ".join(question_parts).strip()
     if from_hook and not question:
         question = "The last command failed. Suggest a fix."
+    piped = "" if from_hook else read_piped()
+    if piped.strip():
+        question = (question + "\n\nPiped output:\n" + piped[:8000]).strip()
     if not question:
         raise AssistantError("Ask a question. Example: vital ask \"how do I delete a folder\"")
     settings = load_settings()
     if from_hook and not settings.shell_hook:
         return 0
+    try:
+        from vital_context import Consent
+        from vital_core import apply_route, route_provider
+
+        chosen = route_provider(settings, keystore_for(settings), Consent())
+        if chosen.provider != settings.provider:
+            print(chosen.reason)
+            settings = apply_route(settings, chosen)
+    except AssistantError:
+        raise
     context = None
-    if settings.send_context or from_hook:
+    if settings.send_context or from_hook or stderr_file or last_command:
         context = shell_context_from_env()
         if exit_code:
             context["exit_code"] = exit_code
         if last_command:
             context["last_command"] = last_command
-        if from_hook:
+        if stderr_file:
+            context["stderr"] = _read_small(Path(stderr_file))
+        if from_hook or stderr_file or last_command:
             settings.send_context = True
     suggestion = suggest(question, settings, keystore_for(settings), context)
     print(format_suggestion(suggestion))
     if not suggestion.command or from_hook:
+        return 0
+    if piped.strip():
+        print("Not run. Piped input is context, never a confirmation.")
         return 0
     prompt = prompt_for(suggestion)
     try:

@@ -331,15 +331,44 @@ class AssistantWindow(Adw.ApplicationWindow):
 
 
 class AssistantApp(Adw.Application):
-    def __init__(self) -> None:
+    def __init__(self, mode: str = "overlay") -> None:
         super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.mode = mode
+        self._opened_at = 0
 
     def do_activate(self) -> None:
-        window = AssistantWindow(self)
+        now = GLib.get_monotonic_time()
+        existing = self.get_windows()
+        if existing and self.mode == "overlay" and now - self._opened_at < 400000:
+            return
+        if existing and self.mode == "overlay" and self._opened_at and now - self._opened_at > 400000:
+            window = existing[0]
+            if window.is_visible():
+                window.close()
+                self._opened_at = now
+                return
+        self._opened_at = now
+        if self.mode == "window":
+            window = AssistantWindow(self)
+        elif self.mode == "settings":
+            from vital_ui import SettingsWindow, apply_css
+
+            apply_css()
+            window = SettingsWindow(self)
+        elif self.mode == "confirm":
+            from vital_ui import ConfirmWindow, apply_css
+
+            apply_css()
+            window = ConfirmWindow(self)
+        else:
+            from vital_ui import OverlayWindow, apply_css
+
+            apply_css()
+            window = OverlayWindow(self)
         window.present()
         shot = os.environ.get("VITAL_ASSISTANT_SHOT", "")
         if shot:
-            GLib.timeout_add(400, self._save, window, shot)
+            GLib.timeout_add(500, self._save, window, shot)
 
     def _save(self, window: AssistantWindow, path: str) -> bool:
         width = window.get_width()
@@ -369,8 +398,22 @@ class AssistantApp(Adw.Application):
 
 def main() -> int:
     Adw.init()
-    app = AssistantApp()
-    return app.run(sys.argv)
+    Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+    view = os.environ.get("VITAL_ASSISTANT_VIEW", "")
+    argv = sys.argv[1:]
+    if "--settings" in argv or view in {"settings", "settings-he"}:
+        mode = "settings"
+    elif "--window" in argv or view in {"connect", "ask"}:
+        mode = "window"
+    elif "--confirm" in argv or view == "confirm":
+        mode = "confirm"
+    else:
+        mode = "overlay"
+    if view == "settings-he":
+        os.environ["VITAL_ASSISTANT_LANGUAGE"] = "he"
+    kept = [arg for arg in argv if arg not in {"--settings", "--overlay", "--window", "--confirm"}]
+    app = AssistantApp(mode)
+    return app.run([sys.argv[0], *kept])
 
 
 if __name__ == "__main__":

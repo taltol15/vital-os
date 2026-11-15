@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+if command -v glib-compile-schemas >/dev/null 2>&1; then
+    glib-compile-schemas /usr/share/glib-2.0/schemas || true
+    if [ -d /usr/share/gnome-shell/extensions/vital-assistant@vitalos/schemas ]; then
+        glib-compile-schemas /usr/share/gnome-shell/extensions/vital-assistant@vitalos/schemas || true
+    fi
+fi
+
+if [ -f /etc/bash.bashrc ] && ! grep -q 'vital-assistant-integration' /etc/bash.bashrc; then
+    printf '\n# vital-assistant-integration\n[ -f /etc/profile.d/vital-assistant.sh ] && . /etc/profile.d/vital-assistant.sh\n' >> /etc/bash.bashrc
+fi
+if [ -f /etc/zsh/zshrc ] && ! grep -q 'vital-assistant-integration' /etc/zsh/zshrc; then
+    printf '\n# vital-assistant-integration\n[ -f /usr/share/vitalos/assistant/hook.zsh ] && . /usr/share/vitalos/assistant/hook.zsh\n' >> /etc/zsh/zshrc
+fi
+
+if command -v dconf >/dev/null 2>&1; then
+    dconf update || true
+fi
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --global daemon-reload >/dev/null 2>&1 || true
+fi
+exit 0

@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if [ -f /etc/bash.bashrc ]; then
+        sed -i '/# vital-assistant-integration/,+1d' /etc/bash.bashrc || true
+    fi
+    if [ -f /etc/zsh/zshrc ]; then
+        sed -i '/# vital-assistant-integration/,+1d' /etc/zsh/zshrc || true
+    fi
+fi
+exit 0
